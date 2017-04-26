@@ -9,6 +9,11 @@ import java.text.SimpleDateFormat;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+/**
+ * This class provides functionality for simple operations on CSV files.
+ *
+ * @author Harry Baines
+ */
 public class SensorData
 {
 	// Calendar/Date instance variables
@@ -24,7 +29,8 @@ public class SensorData
 	private String[] dataLine;
     private String line = "";
 
-    //private List<String> dataList = new ArrayList<>();
+    // Linked list to store data lines from CSV file
+    private LinkedList<DataValue> dataList = new LinkedList<DataValue>();
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
@@ -46,7 +52,16 @@ public class SensorData
 	            {
 	                // Comma = separator
 	                dataLine = line.split(",");
-	                
+
+	                // Add data components to single data entity, then add to array list
+	                dataList.add(new DataValue(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
+	                	dataLine[5], dataLine[6], dataLine[7]));
+
+	                // // Retrieve a data item
+	                // DataValue cur_data = dataList.get(0);
+
+	                System.out.println(cur_data.getTime());
+
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
 	                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
 	                	+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
@@ -65,16 +80,13 @@ public class SensorData
 			System.out.println("No file chosen!");
 	}
 
-	// temp
-	private void sortData()
+	/**
+	 * Allows the user to search for a device by address.
+	 * @param address The address of the device the user wishes to search for.
+	 */
+	private void findDeviceByAddress(String address)
 	{
-		// Sorting
-		// Collections.sort(dataList, new Comparator<String>(){
-		// 	public int compare(String data1, String data2) {
-		// 	    return data1.getFirstName().compareToIgnoreCase(data2.getFirstName());
-		// 	}
-		// });
-
+		
 	}
 
 	/**

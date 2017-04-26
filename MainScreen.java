@@ -1,9 +1,9 @@
 import java.awt.*;
 import javax.swing.*;
 
-public class HomeScreen
+public class MainScreen
 {
-	public HomeScreen()
+	public MainScreen()
 	{
 		JFrame window = new JFrame();
 		JPanel mainPanel = new JPanel();

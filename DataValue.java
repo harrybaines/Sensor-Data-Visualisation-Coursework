@@ -1,7 +1,13 @@
+/**
+ * A class to extract and store all relevant variables from string values read from sensors.
+ * The string values being read are from the chosen CSV file.
+ *
+ * @author Harry Baines
+ */
 public class DataValue
 {
 	// Instance variables
-	private int time;
+	private String time;
 	private String type;
 	private String version;
 	private String counter;
@@ -12,16 +18,17 @@ public class DataValue
 
 	/**
 	 * Constructor to initialise an object with data read from the chosen CSV file.
-	 * @param time The time the sensor reading was sent, in seconds from 1/1/2000 00:00:00.
+	 *
+	 * @param time The time the sensor reading was sent as a string.
 	 * @param type The type code to identify what device this is (should always be 0x20).
 	 * @param version What software version the device is running.
 	 * @param counter A rolling 8-bit, ever increasing number. Used to show how many messages are being missed by the receiver.
 	 * @param via Which receiver picked up this device’s transmission.
 	 * @param address The address of the transmitter.
 	 * @param status The status code of the device, as a bit-packed field - non-zero value = error, each bit in field is different error.
-	 * @param sensor_data 10-bytes of sensor data, in hexadecimal.
+	 * @param sensor_data Sensor data 10-bytes long in hexadecimal.
 	 */
-	public DataValue(int time, String type, String version, String counter, String via, String address,
+	public DataValue(String time, String type, String version, String counter, String via, String address,
 		String status, String sensor_data)
 	{
 		this.time = time;
@@ -40,7 +47,7 @@ public class DataValue
  	 */
  	public int getTime()
  	{
- 		return time;
+ 		return (Integer.parseInt(time));
  	}
 
 	/**
