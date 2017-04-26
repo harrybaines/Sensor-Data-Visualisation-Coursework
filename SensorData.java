@@ -22,12 +22,12 @@ public class SensorData
     private GregorianCalendar cal;
 
     // Data and file variables
-    private File selectedFile;
     private JFileChooser source;
     private FileNameExtensionFilter filter;
+    private File selectedFile;
     private BufferedReader reader;
-	private String[] dataLine;
     private String line = "";
+	private String[] dataLine;
 
     // Linked list to store data lines from CSV file
     private LinkedList<DataValue> dataList = new LinkedList<DataValue>();
@@ -37,6 +37,11 @@ public class SensorData
      */
 	public void findFile()
 	{
+		// Clear linked list
+		while (!dataList.isEmpty()) {
+	        dataList.removeFirst();
+	    }
+
 		// Swing component = file request dialog
 		source = new JFileChooser();
 		filter = new FileNameExtensionFilter("Comma Seperated Files", "csv"); 
@@ -90,6 +95,7 @@ public class SensorData
 
 	/**
 	 * Adds a specified amount of seconds to the date set at the year 2000.
+	 *
 	 * @param s The number of seconds to add to the date.
 	 * @return The date as a string in a human-readable form.
 	 */
@@ -112,12 +118,9 @@ public class SensorData
 		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                SensorData d = new SensorData();
                 MainScreen m = new MainScreen();
                 m.displayScreen();
-                d.findFile();
             }
         });
 	}
 }
-
