@@ -9,37 +9,40 @@ import java.text.SimpleDateFormat;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class Driver
+public class SensorData
 {
-	// Date instance variables
+	// Calendar/Date instance variables
 	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss zzz yyyy", Locale.UK);
 	private static final TimeZone timeZone = TimeZone.getTimeZone("UTC");
     private GregorianCalendar cal;
 
+    // Data and file variables
+    private File selectedFile;
+    private JFileChooser source;
+    private FileNameExtensionFilter filter;
+    private BufferedReader reader;
+	private String[] dataLine;
+    private String line = "";
+
+    /**
+     * Allows the user to open a CSV file of their choice which contains sensor data.
+     */
 	public void findFile()
 	{
-		// A Swing component for file request dialogs! 
-		JFileChooser source = new JFileChooser();
-
-		// Use FileNameExtensionFilter to limit what files we want to get (by file extension) 
-		FileNameExtensionFilter filter = new FileNameExtensionFilter("Comma Seperated Files", "csv"); 
+		// Swing component = file request dialog
+		source = new JFileChooser();
+		filter = new FileNameExtensionFilter("Comma Seperated Files", "csv"); 
 		source.setFileFilter(filter);
 
-		// Ask for a file, and check if the user actually selected one!
 		if (source.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) 
 		{   
-			// Get the file the user selected
-			File selectedFile = source.getSelectedFile();
-
-			// Here is where you would kick off the reading/parsing stages 
-			String[] dataLine = null;
-			String line = "";
-
-			try {
-				BufferedReader reader = new BufferedReader(new FileReader(selectedFile));
-	            while ((line = reader.readLine()) != null) {
-
-	                // use comma as separator
+			selectedFile = source.getSelectedFile();
+			try 
+			{
+				reader = new BufferedReader(new FileReader(selectedFile));
+	            while ((line = reader.readLine()) != null) 
+	            {
+	                // Comma = separator
 	                dataLine = line.split(",");
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
 	                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
@@ -48,21 +51,22 @@ public class Driver
 	                System.out.println(addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 	            }
 			}
-			catch (FileNotFoundException e) 
-			{
+			catch (FileNotFoundException e) {
             	e.printStackTrace();
-       		} 
-       		catch (IOException e) 
-       		{
+			}
+       		catch (IOException e) {
             	e.printStackTrace();
-        	}
+       		}
         }
 		else 
-		{
 			System.out.println("No file chosen!");
-		}
 	}
 
+	/**
+	 * Adds a specified amount of seconds to the date set at the year 2000.
+	 * @param s The number of seconds to add to the date.
+	 * @return The date as a string in a human-readable form.
+	 */
 	private String addSecondsToDate(int s)
 	{
         cal = new GregorianCalendar(2000,00,01,0,0,0);
@@ -70,38 +74,23 @@ public class Driver
         return (dateFormat.format(cal.getTime()));
 	}
 
-	public void showScreen()
-	{
-		JFrame window = new JFrame();
-		JPanel mainPanel = new JPanel();
-		GraphComponent graph = new GraphComponent();
-
-		mainPanel.add(graph);
-
-		// further window details
-        window.setContentPane(mainPanel);
-        window.setTitle("Sensor Data Visualisation");
-        window.setSize(700, 700);
-        window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setLocation(200,200);
-        window.setResizable(false);
-        window.setVisible(true);
-	}
-
+	/**
+	 * Main method to set the initial time zone and create relevant instances to begin the program.
+	 * @param args Unused.
+	 */
 	public static void main(String[] args)
 	{
+		// Set time zone
 		dateFormat.setTimeZone(timeZone);
 
 		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                Driver d = new Driver();
-                //d.showScreen();
+                SensorData d = new SensorData();
+                HomeScreen h = new HomeScreen();
                 d.findFile();
-
             }
         });
 	}
 }
-
 
