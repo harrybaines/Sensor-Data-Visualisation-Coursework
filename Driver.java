@@ -1,14 +1,21 @@
 import java.io.*;
 import java.util.Scanner;
 import java.awt.*;
+import java.util.*;
 import java.util.Date;
 import java.util.Calendar;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class Driver
 {
+	// Date instance variables
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss zzz yyyy", Locale.UK);
+	private static final TimeZone timeZone = TimeZone.getTimeZone("UTC");
+    private GregorianCalendar cal;
+
 	public void findFile()
 	{
 		// A Swing component for file request dialogs! 
@@ -37,29 +44,9 @@ public class Driver
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
 	                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
 	                	+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
+
+	                System.out.println(addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 	            }
-    //         	Timestamp stamp = new Timestamp(zeroPointTime);
-				// Date date = new Date(stamp.getTime());
-			 //    System.out.println(date);
-
-
-	            Calendar cal = Calendar.getInstance();
-	            cal.set(Calendar.MONTH, Calendar.JANUARY);
-	            cal.set(Calendar.DAY_OF_MONTH, 1);
-	            cal.set(Calendar.YEAR, 2000);
-	            cal.set(Calendar.HOUR_OF_DAY, 0);
-	            cal.set(Calendar.MINUTE, 1);
-	            cal.set(Calendar.SECOND, 0);
-
-		        System.out.println("Now: " + cal.getTime());
-
-		        dataLine[0] = "1";
-
-		        int d = Integer.parseInt(dataLine[0]);
-		        cal.add(Calendar.SECOND, d-3600);
-		        System.out.println("Later: " + cal.getTime());
-
-
 			}
 			catch (FileNotFoundException e) 
 			{
@@ -74,6 +61,13 @@ public class Driver
 		{
 			System.out.println("No file chosen!");
 		}
+	}
+
+	private String addSecondsToDate(int s)
+	{
+        cal = new GregorianCalendar(2000,00,01,0,0,0);
+        cal.add(Calendar.SECOND, s);
+        return (dateFormat.format(cal.getTime()));
 	}
 
 	public void showScreen()
@@ -96,6 +90,8 @@ public class Driver
 
 	public static void main(String[] args)
 	{
+		dateFormat.setTimeZone(timeZone);
+
 		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
