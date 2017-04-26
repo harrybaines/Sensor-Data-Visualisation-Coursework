@@ -24,6 +24,8 @@ public class SensorData
 	private String[] dataLine;
     private String line = "";
 
+    //private List<String> dataList = new ArrayList<>();
+
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
      */
@@ -44,6 +46,7 @@ public class SensorData
 	            {
 	                // Comma = separator
 	                dataLine = line.split(",");
+	                
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
 	                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
 	                	+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
@@ -60,6 +63,18 @@ public class SensorData
         }
 		else 
 			System.out.println("No file chosen!");
+	}
+
+	// temp
+	private void sortData()
+	{
+		// Sorting
+		// Collections.sort(dataList, new Comparator<String>(){
+		// 	public int compare(String data1, String data2) {
+		// 	    return data1.getFirstName().compareToIgnoreCase(data2.getFirstName());
+		// 	}
+		// });
+
 	}
 
 	/**
