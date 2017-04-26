@@ -57,9 +57,8 @@ public class SensorData
 	                dataList.add(new DataValue(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
 	                	dataLine[5], dataLine[6], dataLine[7]));
 
-	                // // Retrieve a data item
-	                // DataValue cur_data = dataList.get(0);
-
+	                // Retrieve a data item
+	                DataValue cur_data = dataList.get(0);
 	                System.out.println(cur_data.getTime());
 
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
@@ -114,7 +113,8 @@ public class SensorData
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 SensorData d = new SensorData();
-                HomeScreen h = new HomeScreen();
+                MainScreen m = new MainScreen();
+                m.displayScreen();
                 d.findFile();
             }
         });
