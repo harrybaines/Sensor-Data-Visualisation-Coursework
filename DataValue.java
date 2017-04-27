@@ -19,6 +19,7 @@ public class DataValue
 
 	/**
 	 * Constructor to initialise an object with data read from the chosen CSV file.
+	 * The date the data line was obtained will be calculated and stored in each instance for later reference.
 	 *
 	 * @param time The time the sensor reading was sent as a string.
 	 * @param type The type code to identify what device this is (should always be 0x20).

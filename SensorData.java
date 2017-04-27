@@ -72,6 +72,9 @@ public class SensorData
 
 	                System.out.println("Date: " + addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 	            }
+
+	            // Show success dialog
+				//JOptionPane.showMessageDialog(new JPanel(),"File successfully opened!", "Success", JOptionPane.SUCCESS_MESSAGE);
 			}
 			catch (FileNotFoundException e) {
             	e.printStackTrace();
