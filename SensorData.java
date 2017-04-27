@@ -60,17 +60,17 @@ public class SensorData
 
 	                // Add data components to single data entity, then add to array list
 	                dataList.add(new DataValue(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
-	                	dataLine[5], dataLine[6], dataLine[7]));
+	                	dataLine[5], dataLine[6], dataLine[7], addSecondsToDate(Integer.parseInt(dataLine[0]))));
 
 	                // Retrieve a data item
-	                DataValue cur_data = dataList.get(0);
-	                System.out.println(cur_data.getTime());
+	                // DataValue cur_data = dataList.get(0);
+	                // System.out.println(cur_data.getTime());
 
 	                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
 	                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
 	                	+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
 
-	                System.out.println(addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
+	                System.out.println("Date: " + addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 	            }
 			}
 			catch (FileNotFoundException e) {

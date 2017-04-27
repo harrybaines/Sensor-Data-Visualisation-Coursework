@@ -15,6 +15,7 @@ public class DataValue
 	private String address;
 	private String status;
 	private String sensor_data;
+	private String date_obtained;
 
 	/**
 	 * Constructor to initialise an object with data read from the chosen CSV file.
@@ -27,9 +28,10 @@ public class DataValue
 	 * @param address The address of the transmitter.
 	 * @param status The status code of the device, as a bit-packed field - non-zero value = error, each bit in field is different error.
 	 * @param sensor_data Sensor data 10-bytes long in hexadecimal.
+	 * @param date_obtained The data the data was obtained.
 	 */
 	public DataValue(String time, String type, String version, String counter, String via, String address,
-		String status, String sensor_data)
+		String status, String sensor_data, String date_obtained)
 	{
 		this.time = time;
 		this.type = type;
@@ -39,6 +41,7 @@ public class DataValue
 		this.address = address;
 		this.status = status;
 		this.sensor_data = sensor_data;
+		this.date_obtained = date_obtained;
 	}	
  	
  	/**
@@ -112,5 +115,13 @@ public class DataValue
  	{
  		return sensor_data;
  	}
-}
 
+ 	/**
+ 	 * Returns the date the data value was obtained.
+ 	 * @return The date as a string.
+ 	 */
+ 	public String getDateObtained()
+ 	{
+ 		return date_obtained;
+ 	}
+}
