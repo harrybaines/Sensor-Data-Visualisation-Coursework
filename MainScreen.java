@@ -11,7 +11,7 @@ import javax.swing.border.EmptyBorder;
  */
 public class MainScreen extends JPanel implements ActionListener
 {
-	// SensorData instance to find files and read data
+	// SensorData instance to obtain data lines from a CSV file
 	SensorData data = new SensorData();
 
 	// Window and panels
@@ -21,6 +21,10 @@ public class MainScreen extends JPanel implements ActionListener
     private JPanel topHomePanel;
     private JPanel midHomePanel;
     private JPanel botHomePanel;
+    private JPanel sensorPanel;
+    private JPanel topSensPanel;
+    private JPanel midSensPanel;
+    private JPanel botSensPanel;
     private JPanel optionPanel;
     private JPanel topOptPanel;
     private JPanel midOptPanel;
@@ -33,7 +37,10 @@ public class MainScreen extends JPanel implements ActionListener
     private JTextField addressEntry;
     private JButton button;
 
-    // Option panel
+    // Sensors Panel
+    private JButton searchSensBut;
+
+    // Options panel
     private JButton openFileBtn;
 
     /**
@@ -56,39 +63,67 @@ public class MainScreen extends JPanel implements ActionListener
         homePanel.add("Center", midHomePanel);
         homePanel.add("South", botHomePanel);
 
+        // Sensor Panels
+        sensorPanel = new JPanel(new BorderLayout());
+        topSensPanel = new JPanel(new GridLayout(3,1));
+        midSensPanel = new JPanel(new GridLayout(4,2));
+        botSensPanel = new JPanel(new GridLayout());
+
+        // Add panels to sensors  
+        sensorPanel.add("North", topSensPanel);
+        sensorPanel.add("Center", midSensPanel);
+        sensorPanel.add("South", botSensPanel);
+
         // Option panels
         optionPanel = new JPanel(new BorderLayout());
         topOptPanel = new JPanel(new GridLayout(1,1));
         midOptPanel = new JPanel(new GridLayout(1,1));
         botOptPanel = new JPanel(new GridLayout(1,1));
 
-        // Add panels to option
+        // Add panels to options
         optionPanel.add("North", topOptPanel);
         optionPanel.add("Center", midOptPanel);
         optionPanel.add("South", botOptPanel);
 
-        // Components
-        addressLbl = new JLabel("Search for device (address): ");
-        addressLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        addressLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
-        addressLbl.setForeground(Color.RED);
-        topHomePanel.add(addressLbl);
-
-        addressEntry = new JTextField(20);
-        addressEntry.addActionListener(this);
-        topHomePanel.add(addressEntry);
-
+        // Components - Home
         graph = new GraphComponent();
         midHomePanel.add(graph);
 
         addressEntry = new JTextField();
         button = new JButton("Button");
+
+        // Components - Sensors
+        addressLbl = new JLabel("Search for device (address): ");
+        addressLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        addressLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        addressLbl.setForeground(Color.RED);
+        topSensPanel.add(addressLbl);
+
+        addressEntry = new JTextField(20);
+        addressEntry.addActionListener(this);
+        topSensPanel.add(addressEntry);
+
+        searchSensBut = new JButton("Find");
+        searchSensBut.addActionListener(this);
+        topSensPanel.add(searchSensBut);
+
+        JList list = new JList(); //data has type Object[]
+        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        list.setVisibleRowCount(-1);
+
+        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setPreferredSize(new Dimension(250, 80));
+        midSensPanel.add("Center", scrollPane);
+
+        // Components - Options
         openFileBtn = new JButton("Open File");
         openFileBtn.addActionListener(this);
         topOptPanel.add(openFileBtn);
 
         // Tab pane
         tabPane.add("Home", homePanel);
+        tabPane.add("Sensors", sensorPanel);
         tabPane.add("Options", optionPanel);
         tabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
         setLayout(new BorderLayout());
@@ -107,7 +142,7 @@ public class MainScreen extends JPanel implements ActionListener
                 window.add(new MainScreen());
 		        window.setTitle("Sensor Data Visualisation");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                window.setLocationByPlatform(true);
+                window.setLocation(100,100);
                 window.setSize(700, 700);
                 window.setResizable(false);
                 window.setVisible(true);
@@ -126,6 +161,10 @@ public class MainScreen extends JPanel implements ActionListener
         if (e.getSource() == openFileBtn)
         {
             data.findFile();
+        }
+        else if (e.getSource() == searchSensBut)
+        {
+            data.findDeviceByAddress("");
         }
     }
 }

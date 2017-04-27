@@ -29,7 +29,7 @@ public class SensorData
 	private String[] dataLine;
 
     // Linked list to store data lines from CSV file
-    private LinkedList<DataValue> dataList = new LinkedList<DataValue>();
+    private LinkedList<DataLine> dataList = new LinkedList<DataLine>();
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
@@ -37,29 +37,23 @@ public class SensorData
 	public void findFile()
 	{
 		// Clear linked list
-		while (!dataList.isEmpty()) {
+		while (!dataList.isEmpty())
 	        dataList.removeFirst();
-	    }
 
-		// Swing component = file request dialog
+		// Swing component = file request dialog, only allow CSV's
 		source = new JFileChooser();
 		filter = new FileNameExtensionFilter("Comma Seperated Files", "csv"); 
 		source.setAcceptAllFileFilterUsed(false);
 		source.setFileFilter(filter);
 
-		
-
 		if (source.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) 
 		{   
 			selectedFile = source.getSelectedFile();
-
 			String fileString = selectedFile.toString();
-
 			String extension = fileString.substring(fileString.lastIndexOf(".") + 1, fileString.length());
 
-			if (!extension.equals("csv")) {
-			    JOptionPane.showMessageDialog(new JFrame(), "Error - please choose a CSV file!", "Error", JOptionPane.ERROR_MESSAGE);
-			}
+			if (!extension.equals("csv")) 
+			    JOptionPane.showMessageDialog(new JFrame(), "Error - please choose a CSV file!", "Error", JOptionPane.ERROR_MESSAGE);	
 			else
 			{
 				try 
@@ -71,7 +65,7 @@ public class SensorData
 		                dataLine = line.split(",");
 
 		                // Add data components to single data entity, then add to array list
-		                dataList.add(new DataValue(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
+		                dataList.add(new DataLine(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
 		                	dataLine[5], dataLine[6], dataLine[7], addSecondsToDate(Integer.parseInt(dataLine[0]))));
 
 		                // Retrieve a data item
@@ -88,10 +82,12 @@ public class SensorData
 		            // Show success dialog
 					JOptionPane.showMessageDialog(new JFrame(), "File successfully opened!");
 				}
-				catch (FileNotFoundException e) {
+				catch (FileNotFoundException e) 
+				{
 	            	e.printStackTrace();
 				}
-	       		catch (IOException e) {
+	       		catch (IOException e) 
+	       		{
 	            	e.printStackTrace();
 	       		}
 			}
@@ -104,9 +100,9 @@ public class SensorData
 	 * Allows the user to search for a device by address.
 	 * @param address The address of the device the user wishes to search for.
 	 */
-	private void findDeviceByAddress(String address)
+	public void findDeviceByAddress(String address)
 	{
-		
+		System.out.println("Find!");
 	}
 
 	/**
@@ -132,8 +128,10 @@ public class SensorData
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+        SwingUtilities.invokeLater(new Runnable() 
+        {
+            public void run() 
+            {
                 MainScreen m = new MainScreen();
                 m.displayScreen();
             }

@@ -4,7 +4,7 @@
  *
  * @author Harry Baines
  */
-public class DataValue
+public class DataLine
 {
 	// Instance variables
 	private String time;
@@ -29,9 +29,9 @@ public class DataValue
 	 * @param address The address of the transmitter.
 	 * @param status The status code of the device, as a bit-packed field - non-zero value = error, each bit in field is different error.
 	 * @param sensor_data Sensor data 10-bytes long in hexadecimal.
-	 * @param date_obtained The data the data was obtained.
+	 * @param date_obtained The date the data was obtained.
 	 */
-	public DataValue(String time, String type, String version, String counter, String via, String address,
+	public DataLine(String time, String type, String version, String counter, String via, String address,
 		String status, String sensor_data, String date_obtained)
 	{
 		this.time = time;
