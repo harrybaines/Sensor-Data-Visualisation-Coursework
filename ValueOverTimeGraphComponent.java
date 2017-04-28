@@ -34,14 +34,9 @@ public class ValueOverTimeGraphComponent extends Canvas
 		g.setColor(Color.LIGHT_GRAY);
 		g.fillRect(10, 10, getWidth()-20, getHeight()-20);
 
-		// Draw some data - random, yours should be real :)
-		// g.setColor(Color.WHITE);
-		// for (int x=30; x<getWidth()-20; x+=10) 
-		// { 
-		// 	g.drawLine(x, getHeight()-20, x, getHeight()-20-(int)(Math.random()*getHeight()*0.8)); 
-		// }
-
 		listIt = dataLines.listIterator();
+
+		g.setColor(Color.WHITE);
 
         while (listIt.hasNext())
         {
@@ -56,7 +51,10 @@ public class ValueOverTimeGraphComponent extends Canvas
 	        	// Read 10 sensor values
 	        	while (inc <= 19)
 	        	{
-	        		System.out.println("Sensor " + sensNo + ": " + Integer.parseInt(deviceToCheck.getSensorData().substring(inc-1,inc+1), 16));
+	        		int sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(inc-1,inc+1), 16);
+	        		System.out.println("Sensor " + sensNo + ": " + sensorValue);
+	        		// Plot data point
+	        		g.drawLine(40, 40, 50, 50);
 	        		inc += 2;
 	        		sensNo++;
 	        	}
@@ -64,13 +62,23 @@ public class ValueOverTimeGraphComponent extends Canvas
         	}
         }
 
-		g.setColor(Color.WHITE);
-
 		// Draw axis lines
 		g.setColor(Color.BLACK);
-		g.drawLine(20, 20, 20, getHeight()-20);
-		g.drawLine(20, getHeight()-20, getWidth()-20, getHeight()-20);
+		g.drawLine(40, 40, 40, getHeight()-40);
+		g.drawLine(40, getHeight()-40, getWidth()-40, getHeight()-40);
+		g.drawLine(40, 40, 35, 45);
+		g.drawLine(40, 40, 45, 45);
+		g.drawLine(getWidth()-40, getHeight()-40, getWidth()-45, getHeight()-45);
+		g.drawLine(getWidth()-40, getHeight()-40, getWidth()-45, getHeight()-35);
+		
+		// Draw axis labels
+		g.setColor(Color.BLACK);
+		for (int i = 0; i < 7; i++)
+			g.drawString(Integer.toString(i*50), 12, getHeight() - 40 - (i*50));
+
+		for (int i = 0; i < 8; i++)
+			g.drawString(Integer.toString((i+1)*100), (i*100) + 80, getHeight() - 20);
+
 	}
-
-
 }
+

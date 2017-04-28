@@ -212,7 +212,7 @@ public class MainScreen extends JPanel implements ActionListener
 		        window.setTitle("Sensor Data Visualisation");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLocation(100,100);
-                window.setSize(900, 900);
+                window.setSize(900, 1000);
                 window.setResizable(false);
                 window.setVisible(true);
             }
