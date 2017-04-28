@@ -8,6 +8,9 @@ public class ValueOverTimeGraphComponent extends Canvas
 	private DataLine deviceToCheck;
     private ListIterator<DataLine> listIt;
 
+    private int sensNo = 1;
+    private int inc = 1;
+
 	public ValueOverTimeGraphComponent(LinkedList<DataLine> dataLines) 
 	{
 		listIt = dataLines.listIterator();
@@ -38,8 +41,8 @@ public class ValueOverTimeGraphComponent extends Canvas
 		// 	g.drawLine(x, getHeight()-20, x, getHeight()-20-(int)(Math.random()*getHeight()*0.8)); 
 		// }
 
-		int i;
-		int j;
+		listIt = dataLines.listIterator();
+
         while (listIt.hasNext())
         {
         	deviceToCheck = listIt.next();
@@ -48,14 +51,14 @@ public class ValueOverTimeGraphComponent extends Canvas
         		flaggedDataLines.add(deviceToCheck);
         	else
         	{
-        		j = 1;
-        		i = 1;
+        		sensNo = 1;
+        		inc = 1;
 	        	// Read 10 sensor values
-	        	while (i <= 19)
+	        	while (inc <= 19)
 	        	{
-	        		System.out.println("Sensor " + j + ": " + Integer.parseInt(deviceToCheck.getSensorData().substring(i-1,i+1), 16));
-	        		i += 2;
-	        		j++;
+	        		System.out.println("Sensor " + sensNo + ": " + Integer.parseInt(deviceToCheck.getSensorData().substring(inc-1,inc+1), 16));
+	        		inc += 2;
+	        		sensNo++;
 	        	}
 	        	System.out.println("\n");
         	}
