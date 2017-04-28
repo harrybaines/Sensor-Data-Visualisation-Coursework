@@ -39,7 +39,7 @@ public class MainScreen extends JPanel implements ActionListener
 
     // UI Components
     // Home Panel
-    private GraphComponent graph;
+    private ValueOverTimeGraphComponent valueOverTimeGraph;
     private JButton button;
 
     // Sensors Panel
@@ -117,8 +117,8 @@ public class MainScreen extends JPanel implements ActionListener
         optionPanel.add("South", botOptPanel);
 
         // Components - Home
-        graph = new GraphComponent();
-        midHomePanel.add(graph);
+        valueOverTimeGraph = new ValueOverTimeGraphComponent(devicesFound);
+        midHomePanel.add(valueOverTimeGraph);
 
         addressEntry = new JTextField();
         button = new JButton("Button");
@@ -179,8 +179,8 @@ public class MainScreen extends JPanel implements ActionListener
         botCompPanel.add(visOpts);
         botCompPanel.add(applyVisBtn);
 
-		graph = new GraphComponent();
-        botGraphPanel.add(graph);
+		valueOverTimeGraph = new ValueOverTimeGraphComponent(devicesFound);
+        botGraphPanel.add(valueOverTimeGraph);
 
         // Components - Options
         openFileBtn = new JButton("Open File");
@@ -276,6 +276,10 @@ public class MainScreen extends JPanel implements ActionListener
         }
         else if (e.getSource() == applyVisBtn)
         {
+        	// botGraphPanel.revalidate();
+        	valueOverTimeGraph = new ValueOverTimeGraphComponent(devicesFound);
+        	botGraphPanel.add(valueOverTimeGraph);
+        	botGraphPanel.revalidate();
         	System.out.println("Chosen Type: " + (String)(visOpts.getSelectedItem()));
         }
     }
