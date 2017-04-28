@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
@@ -13,6 +14,9 @@ public class MainScreen extends JPanel implements ActionListener
 {
 	// SensorData instance to obtain data lines from a CSV file
 	SensorData data = new SensorData();
+
+    // Used to store all devices found when a search has occurred
+    private LinkedList<String> devicesFound = new LinkedList<String>();
 
 	// Window and panels
 	private JFrame window;
@@ -39,6 +43,11 @@ public class MainScreen extends JPanel implements ActionListener
 
     // Sensors Panel
     private JButton searchSensBut;
+    private JList<String> sensorList;
+    private DefaultListModel<String> listModel;
+    private ListIterator<String> listIt;
+    private String deviceToAdd; 
+    private JScrollPane scrollPane;
 
     // Options panel
     private JButton openFileBtn;
@@ -107,12 +116,13 @@ public class MainScreen extends JPanel implements ActionListener
         searchSensBut.addActionListener(this);
         topSensPanel.add(searchSensBut);
 
-        JList list = new JList(); //data has type Object[]
-        list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-        list.setVisibleRowCount(-1);
+        listModel = new DefaultListModel<String>();
+        sensorList = new JList<String>(listModel);
+        sensorList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        sensorList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        sensorList.setVisibleRowCount(-1);
 
-        JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane = new JScrollPane(sensorList);
         scrollPane.setPreferredSize(new Dimension(250, 80));
         midSensPanel.add("Center", scrollPane);
 
@@ -134,10 +144,13 @@ public class MainScreen extends JPanel implements ActionListener
     /**
      * A method to display the UI to the user.
      */
-    public void displayScreen() {
-        SwingUtilities.invokeLater(new Runnable() {
+    public void displayScreen() 
+    {
+        SwingUtilities.invokeLater(new Runnable() 
+        {
             @Override
-            public void run() {
+            public void run() 
+            {
                 window = new JFrame();
                 window.add(new MainScreen());
 		        window.setTitle("Sensor Data Visualisation");
@@ -164,7 +177,22 @@ public class MainScreen extends JPanel implements ActionListener
         }
         else if (e.getSource() == searchSensBut)
         {
-            data.findDeviceByAddress("");
+            // Clear current list
+            listModel.removeAllElements();
+
+            // Obtain linked list of devices found
+            devicesFound = data.findDeviceByAddress(addressEntry.getText());
+
+            // Iterate over linked list
+            listIt = devicesFound.listIterator();
+
+            while (listIt.hasNext())
+            {
+                deviceToAdd = listIt.next();
+                listModel.addElement(deviceToAdd);
+            }
+
+            addressEntry.setText("");
         }
     }
 }

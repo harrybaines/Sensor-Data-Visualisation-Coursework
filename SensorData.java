@@ -27,9 +27,16 @@ public class SensorData
     private BufferedReader reader;
     private String line = "";
 	private String[] dataLine;
+	private DataLine nextData;
 
     // Linked list to store data lines from CSV file
     private LinkedList<DataLine> dataList = new LinkedList<DataLine>();
+
+    // Linked list to store all devices found when a search has occured
+    private LinkedList<String> devicesFound = new LinkedList<String>();
+
+    // List iterator to iterate over all data lines
+    private ListIterator<DataLine> listIt;
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
@@ -72,11 +79,11 @@ public class SensorData
 		                // DataValue cur_data = dataList.get(0);
 		                // System.out.println(cur_data.getTime());
 
-		                System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
-		                	+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
-		                	+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
+		                //System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
+		                	//+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
+		                	//+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
 
-		                System.out.println("Date: " + addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
+		                //System.out.println("Date: " + addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 		            }
 
 		            // Show success dialog
@@ -98,11 +105,26 @@ public class SensorData
 
 	/**
 	 * Allows the user to search for a device by address.
+	 *
 	 * @param address The address of the device the user wishes to search for.
+	 * @return The linked list containing all device search results found.
 	 */
-	public void findDeviceByAddress(String address)
+	public LinkedList<String> findDeviceByAddress(String address)
 	{
-		System.out.println("Find!");
+		// Clear linked list
+		while (!devicesFound.isEmpty())
+	        devicesFound.removeFirst();
+
+	    // Iterate over data lines - search for device, add to linked list
+ 		listIt = dataList.listIterator();
+
+        while (listIt.hasNext())
+        {
+        	nextData = listIt.next();
+        	if (nextData.getAddress().equals(address))
+        		devicesFound.add(nextData.getStringLine());
+        }
+		return devicesFound;
 	}
 
 	/**

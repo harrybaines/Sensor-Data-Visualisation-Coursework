@@ -125,4 +125,13 @@ public class DataLine
  	{
  		return date_obtained;
  	}
+
+ 	/**
+ 	 * Returns the full string value containing all details about the data line
+ 	 * @return The full string information.
+ 	 */
+ 	public String getStringLine()
+ 	{
+ 		return (time + " " + type + " " + version + " " + counter + " " + via + " " + address + " " + status + " " + sensor_data + " " + date_obtained);
+ 	}
 }
