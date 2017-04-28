@@ -14,7 +14,7 @@ import javax.swing.table.*;
 public class MainScreen extends JPanel implements ActionListener
 {
 	// SensorData instance to obtain data lines from a CSV file
-	SensorData data = new SensorData();
+	private SensorData data = new SensorData();
 
     // Used to store all devices found when a search has occurred
     private LinkedList<DataLine> devicesFound = new LinkedList<DataLine>();
@@ -30,6 +30,8 @@ public class MainScreen extends JPanel implements ActionListener
     private JPanel topSensPanel;
     private JPanel midSensPanel;
     private JPanel botSensPanel;
+    private JPanel botCompPanel;
+    private JPanel botGraphPanel;
     private JPanel optionPanel;
     private JPanel topOptPanel;
     private JPanel midOptPanel;
@@ -37,19 +39,27 @@ public class MainScreen extends JPanel implements ActionListener
 
     // UI Components
     // Home Panel
-    private JLabel addressLbl;
     private GraphComponent graph;
-    private JTextField addressEntry;
     private JButton button;
 
     // Sensors Panel
+    private JLabel addressLbl;
+    private JTextField addressEntry;
     private JButton searchSensBut;
-    private String[] columnNames = {"Time", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data"};
-    
-    private LinkedList<Object> tableData = new LinkedList<Object>();
+    private JLabel resultsFoundLbl;
 
-    private DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
-    private JTable table = new JTable(tableModel);
+	// List of visualisation options for sensor devices
+    private String[] visuals = new String[] {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart"};
+    private JComboBox<String> visOpts = new JComboBox<String>(visuals);
+
+    // Table variables
+    private static final String[] columnNames = {"Time (s)", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data", "Date Obtained"};
+    private LinkedList<Object> tableData = new LinkedList<Object>();
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private TableColumnModel columnModel;
+
+    private JButton applyVisBtn;
 
     private ListIterator<DataLine> listIt;
     private DataLine deviceToAdd; 
@@ -80,9 +90,15 @@ public class MainScreen extends JPanel implements ActionListener
 
         // Sensor Panels
         sensorPanel = new JPanel(new BorderLayout());
-        topSensPanel = new JPanel(new GridLayout(3,1));
-        midSensPanel = new JPanel(new GridLayout(4,2));
-        botSensPanel = new JPanel(new GridLayout());
+        topSensPanel = new JPanel();
+        midSensPanel = new JPanel(new BorderLayout());
+        botSensPanel = new JPanel(new BorderLayout());
+
+        // botSensPanel sub-panels
+        botCompPanel = new JPanel();
+        botGraphPanel = new JPanel();
+        botSensPanel.add("North", botCompPanel);
+        botSensPanel.add("South", botGraphPanel);
 
         // Add panels to sensors  
         sensorPanel.add("North", topSensPanel);
@@ -122,9 +138,49 @@ public class MainScreen extends JPanel implements ActionListener
         searchSensBut.addActionListener(this);
         topSensPanel.add(searchSensBut);
 
-        scrollPane = new JScrollPane(table);
-        table.setFillsViewportHeight(true);
+        resultsFoundLbl = new JLabel("No Results Found");
+        topSensPanel.add(resultsFoundLbl);
+
+        // Table components
+        tableModel = new DefaultTableModel(columnNames, 0);
+
+        table = new JTable(tableModel) 
+        {
+	    	public boolean isCellEditable(int row, int column) 
+	    	{
+	    		return false;
+	    	}
+	    };
+	    table.setFillsViewportHeight(true);
+        table.setRowHeight(30);
+
+	    columnModel = table.getColumnModel();
+        columnModel.getColumn(0).setPreferredWidth(60);
+        columnModel.getColumn(1).setPreferredWidth(20);
+        columnModel.getColumn(2).setPreferredWidth(20);
+        columnModel.getColumn(3).setPreferredWidth(20);
+        columnModel.getColumn(4).setPreferredWidth(10);
+        columnModel.getColumn(5).setPreferredWidth(60);
+        columnModel.getColumn(6).setPreferredWidth(20);
+        columnModel.getColumn(7).setPreferredWidth(150);
+        columnModel.getColumn(8).setPreferredWidth(170);
+
+		scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
+
+        JLabel visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
+        visualiseAsLbl.setHorizontalAlignment(SwingConstants.LEFT);
+        visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        visualiseAsLbl.setForeground(Color.RED);
+        applyVisBtn = new JButton("Apply");
+        applyVisBtn.addActionListener(this);
+
+		botCompPanel.add(visualiseAsLbl);
+        botCompPanel.add(visOpts);
+        botCompPanel.add(applyVisBtn);
+
+		graph = new GraphComponent();
+        botGraphPanel.add(graph);
 
         // Components - Options
         openFileBtn = new JButton("Open File");
@@ -156,7 +212,7 @@ public class MainScreen extends JPanel implements ActionListener
 		        window.setTitle("Sensor Data Visualisation");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLocation(100,100);
-                window.setSize(700, 700);
+                window.setSize(900, 900);
                 window.setResizable(false);
                 window.setVisible(true);
             }
@@ -212,6 +268,15 @@ public class MainScreen extends JPanel implements ActionListener
                 tableModel.addRow(dataToAdd);
             }
             addressEntry.setText("");
+
+            if (devicesFound.size() == 0)
+            	resultsFoundLbl.setText("No Results Found");
+            else
+            	resultsFoundLbl.setText("Results Found: " + devicesFound.size());
+        }
+        else if (e.getSource() == applyVisBtn)
+        {
+        	System.out.println("Chosen Type: " + (String)(visOpts.getSelectedItem()));
         }
     }
 }

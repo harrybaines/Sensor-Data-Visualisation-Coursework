@@ -5,13 +5,13 @@ public class GraphComponent extends Canvas
 	public GraphComponent() 
 	{
 		// graph size
-		setPreferredSize(new Dimension(400, 400));
+		setPreferredSize(new Dimension(850, 350));
 		setVisible(true); 
 	}
 
 	// override the paint method - allows use to draw elements
 	@Override 
-	public void paint( Graphics g ) 
+	public void paint(Graphics g) 
 	{
 		// clear entire canvas
 		g.setColor(Color.WHITE);
