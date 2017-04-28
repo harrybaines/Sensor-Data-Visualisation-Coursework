@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.util.*;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.*;
 
 /**
  * This class provides a simple, high-fidelity UI displaying sensor data visualisations.
@@ -16,7 +17,7 @@ public class MainScreen extends JPanel implements ActionListener
 	SensorData data = new SensorData();
 
     // Used to store all devices found when a search has occurred
-    private LinkedList<String> devicesFound = new LinkedList<String>();
+    private LinkedList<DataLine> devicesFound = new LinkedList<DataLine>();
 
 	// Window and panels
 	private JFrame window;
@@ -43,10 +44,15 @@ public class MainScreen extends JPanel implements ActionListener
 
     // Sensors Panel
     private JButton searchSensBut;
-    private JList<String> sensorList;
-    private DefaultListModel<String> listModel;
-    private ListIterator<String> listIt;
-    private String deviceToAdd; 
+    private String[] columnNames = {"Time", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data"};
+    
+    private LinkedList<Object> tableData = new LinkedList<Object>();
+
+    private DefaultTableModel tableModel = new DefaultTableModel(columnNames, 0);
+    private JTable table = new JTable(tableModel);
+
+    private ListIterator<DataLine> listIt;
+    private DataLine deviceToAdd; 
     private JScrollPane scrollPane;
 
     // Options panel
@@ -116,14 +122,8 @@ public class MainScreen extends JPanel implements ActionListener
         searchSensBut.addActionListener(this);
         topSensPanel.add(searchSensBut);
 
-        listModel = new DefaultListModel<String>();
-        sensorList = new JList<String>(listModel);
-        sensorList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-        sensorList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-        sensorList.setVisibleRowCount(-1);
-
-        scrollPane = new JScrollPane(sensorList);
-        scrollPane.setPreferredSize(new Dimension(250, 80));
+        scrollPane = new JScrollPane(table);
+        table.setFillsViewportHeight(true);
         midSensPanel.add("Center", scrollPane);
 
         // Components - Options
@@ -177,22 +177,42 @@ public class MainScreen extends JPanel implements ActionListener
         }
         else if (e.getSource() == searchSensBut)
         {
-            // Clear current list
-            listModel.removeAllElements();
+        	// Clear table contents
+        	DefaultTableModel dm = (DefaultTableModel)table.getModel();
+			dm.getDataVector().removeAllElements();
+			dm.fireTableDataChanged(); // notifies the JTable that the model has changed
 
-            // Obtain linked list of devices found
+            // Obtain linked list of devices found using user entry
             devicesFound = data.findDeviceByAddress(addressEntry.getText());
 
             // Iterate over linked list
             listIt = devicesFound.listIterator();
 
+            // Add to output
             while (listIt.hasNext())
             {
+            	// Obtain next device properties
                 deviceToAdd = listIt.next();
-                listModel.addElement(deviceToAdd);
-            }
 
+         		// Store properties from data line
+                Object[] dataToAdd = 
+                {
+                	deviceToAdd.getTime(), 
+                	deviceToAdd.getType(), 
+                	deviceToAdd.getVersion(), 
+                	deviceToAdd.getCounter(), 
+                	deviceToAdd.getVia(),
+                	deviceToAdd.getAddress(), 
+                	deviceToAdd.getStatus(), 
+                	deviceToAdd.getSensorData(), 
+                	deviceToAdd.getDateObtained()
+                };
+
+                // Add row to table
+                tableModel.addRow(dataToAdd);
+            }
             addressEntry.setText("");
         }
     }
 }
+

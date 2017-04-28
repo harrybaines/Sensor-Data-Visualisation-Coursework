@@ -33,7 +33,7 @@ public class SensorData
     private LinkedList<DataLine> dataList = new LinkedList<DataLine>();
 
     // Linked list to store all devices found when a search has occured
-    private LinkedList<String> devicesFound = new LinkedList<String>();
+    private LinkedList<DataLine> devicesFound = new LinkedList<DataLine>();
 
     // List iterator to iterate over all data lines
     private ListIterator<DataLine> listIt;
@@ -109,7 +109,7 @@ public class SensorData
 	 * @param address The address of the device the user wishes to search for.
 	 * @return The linked list containing all device search results found.
 	 */
-	public LinkedList<String> findDeviceByAddress(String address)
+	public LinkedList<DataLine> findDeviceByAddress(String address)
 	{
 		// Clear linked list
 		while (!devicesFound.isEmpty())
@@ -122,7 +122,7 @@ public class SensorData
         {
         	nextData = listIt.next();
         	if (nextData.getAddress().equals(address))
-        		devicesFound.add(nextData.getStringLine());
+        		devicesFound.add(nextData);
         }
 		return devicesFound;
 	}
