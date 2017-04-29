@@ -34,33 +34,7 @@ public class ValueOverTimeGraphComponent extends Canvas
 		g.setColor(Color.LIGHT_GRAY);
 		g.fillRect(10, 10, getWidth()-20, getHeight()-20);
 
-		listIt = dataLines.listIterator();
-
-		g.setColor(Color.WHITE);
-
-        while (listIt.hasNext())
-        {
-        	deviceToCheck = listIt.next();
-
-        	if (deviceToCheck.getSensorData().length() > 20)
-        		flaggedDataLines.add(deviceToCheck);
-        	else
-        	{
-        		sensNo = 1;
-        		inc = 1;
-	        	// Read 10 sensor values
-	        	while (inc <= 19)
-	        	{
-	        		int sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(inc-1,inc+1), 16);
-	        		System.out.println("Sensor " + sensNo + ": " + sensorValue);
-	        		// Plot data point
-	        		g.drawLine(40, 40, 50, 50);
-	        		inc += 2;
-	        		sensNo++;
-	        	}
-	        	System.out.println("\n");
-        	}
-        }
+		
 
 		// Draw axis lines
 		g.setColor(Color.BLACK);
