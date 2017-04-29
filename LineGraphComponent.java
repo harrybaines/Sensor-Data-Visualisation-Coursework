@@ -4,12 +4,12 @@ import javax.swing.*;
 import java.util.*;
 
 /**
- * A class to model a simple scatter graph component.
+ * A class to model a simple line graph component.
  * The graph displays all provided sensor data points in a compact component and can be viewed inside a panel/frame.
  *
  * @author Harry Baines
  */
-public class ScatterGraphComponent extends JPanel 
+public class LineGraphComponent extends JPanel 
 {
     // Linked list to store sensor data and iterator
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
@@ -79,7 +79,7 @@ public class ScatterGraphComponent extends JPanel
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
      */
-    public ScatterGraphComponent(LinkedList<Integer> sensorPoints)
+    public LineGraphComponent(LinkedList<Integer> sensorPoints)
     {
         this.sensorPoints = sensorPoints;
     }

@@ -26,12 +26,14 @@ public class MainScreen extends JPanel implements ActionListener
     private JPanel topHomePanel;
     private JPanel midHomePanel;
     private JPanel botHomePanel;
+
     private JPanel sensorPanel;
     private JPanel topSensPanel;
     private JPanel midSensPanel;
     private JPanel botSensPanel;
-    private JPanel botCompPanel;
-    private JPanel botGraphPanel;
+    private JPanel botSortPanel;
+    private JPanel botVisPanel;
+
     private JPanel optionPanel;
     private JPanel topOptPanel;
     private JPanel midOptPanel;
@@ -47,10 +49,17 @@ public class MainScreen extends JPanel implements ActionListener
     private JTextField addressEntry;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
+    private String selectedItem;
+
+    // List of sorting options for sensor devices
+    private String[] sorts = new String[] {"Time since last seen", "Number of errors found", "Messages missed by receiver"};
+    private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
+    private JButton applySortBtn;
 
     // List of visualisation options for sensor devices
     private String[] visuals = new String[] {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
+    private JButton applyVisBtn;
 
     // Table variables
     private static final String[] columnNames = {"Time (s)", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data", "Date Obtained"};
@@ -59,8 +68,6 @@ public class MainScreen extends JPanel implements ActionListener
     private DefaultTableModel tableModel;
     private TableColumnModel columnModel;
 
-    private JButton applyVisBtn;
-
     private ListIterator<DataLine> listIt;
     private DataLine deviceToAdd; 
     private JScrollPane scrollPane;
@@ -68,17 +75,12 @@ public class MainScreen extends JPanel implements ActionListener
     // Options panel
     private JButton openFileBtn;
 
-
-
     // Graph Dialog Window Variables
     private LinkedList<DataLine> flaggedDataLines = new LinkedList<DataLine>();
     private DataLine deviceToCheck;
     private JTabbedPane graphTabPane;
     private int sensNo = 1;
     private int inc = 1;
-
-
-
 
     /**
      * Constructor to initialise panels and components on the UI.
@@ -100,37 +102,28 @@ public class MainScreen extends JPanel implements ActionListener
         homePanel.add("Center", midHomePanel);
         homePanel.add("South", botHomePanel);
 
-        // Sensor Panels
+        // Components - Home
+        addressEntry = new JTextField();
+        button = new JButton("Button");
+
+
+        // Sensor panels
         sensorPanel = new JPanel(new BorderLayout());
         topSensPanel = new JPanel();
-        midSensPanel = new JPanel(new BorderLayout());
+        midSensPanel = new JPanel(new GridLayout(2,1));
         botSensPanel = new JPanel(new BorderLayout());
 
-        // botSensPanel sub-panels
-        botCompPanel = new JPanel();
-        botGraphPanel = new JPanel();
-        botSensPanel.add("North", botCompPanel);
-        botSensPanel.add("South", botGraphPanel);
+        // Sensor panel - bottom
+        botSortPanel = new JPanel(new GridLayout(4,4));
+        botVisPanel = new JPanel(new GridLayout(4,4));
+
+        botSensPanel.add("West", botSortPanel);
+        botSensPanel.add("East", botVisPanel);
 
         // Add panels to sensors  
         sensorPanel.add("North", topSensPanel);
         sensorPanel.add("Center", midSensPanel);
         sensorPanel.add("South", botSensPanel);
-
-        // Option panels
-        optionPanel = new JPanel(new BorderLayout());
-        topOptPanel = new JPanel(new GridLayout(1,1));
-        midOptPanel = new JPanel(new GridLayout(1,1));
-        botOptPanel = new JPanel(new GridLayout(1,1));
-
-        // Add panels to options
-        optionPanel.add("North", topOptPanel);
-        optionPanel.add("Center", midOptPanel);
-        optionPanel.add("South", botOptPanel);
-
-        // Components - Home
-        addressEntry = new JTextField();
-        button = new JButton("Button");
 
         // Components - Sensors
         addressLbl = new JLabel("Search for device (address): ");
@@ -150,7 +143,7 @@ public class MainScreen extends JPanel implements ActionListener
         resultsFoundLbl = new JLabel("No Results Found");
         topSensPanel.add(resultsFoundLbl);
 
-        // Table components
+        // Sensor panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
 
         table = new JTable(tableModel) 
@@ -177,21 +170,47 @@ public class MainScreen extends JPanel implements ActionListener
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
 
+        // Sensor panel - sort panel
+        JLabel sortLbl = new JLabel("Sort Sensors By:");
+        sortLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        sortLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        sortLbl.setForeground(Color.RED);
+        applySortBtn = new JButton("Apply");
+        applySortBtn.addActionListener(this);
+
+        botSortPanel.add(sortLbl);
+        botSortPanel.add(sortOpts);
+        botSortPanel.add(applySortBtn);
+
+        // Sensor panel - visualise panel
         JLabel visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
-        visualiseAsLbl.setHorizontalAlignment(SwingConstants.LEFT);
+        visualiseAsLbl.setHorizontalAlignment(SwingConstants.CENTER);
         visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         visualiseAsLbl.setForeground(Color.RED);
         applyVisBtn = new JButton("Apply");
         applyVisBtn.addActionListener(this);
 
-        botCompPanel.add(visualiseAsLbl);
-        botCompPanel.add(visOpts);
-        botCompPanel.add(applyVisBtn);
+        botVisPanel.add(visualiseAsLbl);
+        botVisPanel.add(visOpts);
+        botVisPanel.add(applyVisBtn);
+
+
+        // Option panels
+        optionPanel = new JPanel(new BorderLayout());
+        topOptPanel = new JPanel(new GridLayout(1,1));
+        midOptPanel = new JPanel(new GridLayout(1,1));
+        botOptPanel = new JPanel(new GridLayout(1,1));
+
+        // Add panels to options
+        optionPanel.add("North", topOptPanel);
+        optionPanel.add("Center", midOptPanel);
+        optionPanel.add("South", botOptPanel);
 
         // Components - Options
         openFileBtn = new JButton("Open File");
         openFileBtn.addActionListener(this);
         topOptPanel.add(openFileBtn);
+
 
         // Tab pane
         tabPane.add("Home", homePanel);
@@ -281,13 +300,16 @@ public class MainScreen extends JPanel implements ActionListener
                 resultsFoundLbl.setText("Results Found: " + devicesFound.size());
         }
 
-
-
+        else if (e.getSource() == applySortBtn)
+        {
+            System.out.println("SORT!");
+        }
 
         else if (e.getSource() == applyVisBtn)
-        {
-            if (visOpts.getSelectedItem().equals("Scatter Graph"))
-            {               
+        {          
+            selectedItem = visOpts.getSelectedItem().toString();
+            if (selectedItem.equals("Scatter Graph") || selectedItem.equals("Sensor-Value-Over-Time Line Graph"))
+            {
                 SwingUtilities.invokeLater(new Runnable() 
                 {
                     @Override
@@ -321,8 +343,15 @@ public class MainScreen extends JPanel implements ActionListener
                                 sensorPoints.add(sensorValue);
                             }
 
-                            // Add new graph component to new panel
-                            graphPanel.add("Center", new ScatterGraphComponent(sensorPoints));
+                            // Add new graph type component to new panel
+                            if (visOpts.getSelectedItem().equals("Scatter Graph"))
+                            {
+                                graphPanel.add("Center", new ScatterGraphComponent(sensorPoints));
+                            }
+                            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+                            {
+                                graphPanel.add("Center", new LineGraphComponent(sensorPoints));
+                            }
 
                             // Add new panel to tab pane
                             graphTabPane.add(sensorString, graphPanel);
@@ -338,12 +367,8 @@ public class MainScreen extends JPanel implements ActionListener
                         f.setResizable(false); 
                     }
                 }); 
-            }
+            }   
         }
     }
 }
-
-
-
-
 
