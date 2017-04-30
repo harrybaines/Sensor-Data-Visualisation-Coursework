@@ -62,11 +62,19 @@ public class LineGraphComponent extends JPanel
         for (int i = 0; i < 7; i++)
             g2.drawString(Integer.toString(i*50), pad/4, height - pad - (int)(i*scale*50));
 
-        // X axis labels
-        for (int i = 0; i < 8; i++)
-            g2.drawString(Integer.toString((i+1)*100), (i*100) + 80, height - 20);
+        // X axis labels - iterate over all date data points and mark on X axis
+        i = 0;
+        g2.setPaint(Color.BLACK);
+        g2.setFont(new Font("default", Font.BOLD, 11));
+        listItDates = datePoints.listIterator();
+        while (listItDates.hasNext())
+        {
+            datePoint = listItDates.next();
+            g2.drawString(datePoint, 50 + (i*170), getHeight() - 20);
+            i++;
+        }
 
-        // Iterate over all data points and mark data points with red ellipses
+        // Data points - iterate over all data points and mark data points with red ellipses
         inc = 0;
         g2.setPaint(Color.red);
         listIt = sensorPoints.listIterator();
@@ -77,17 +85,6 @@ public class LineGraphComponent extends JPanel
             yPos = height - pad - scale*sensorPoint;
             g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
             inc++;
-        }
-
-        // Iterate over all date data points and mark on X axis
-        i = 0;
-        g2.setPaint(Color.BLACK);
-        listItDates = datePoints.listIterator();
-        while (listItDates.hasNext())
-        {
-            datePoint = listItDates.next();
-            g2.drawString(datePoint, (i*100) + 80, getHeight() - 20);
-            i++;
         }
     }
 
