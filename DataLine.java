@@ -1,7 +1,7 @@
 /**
  * A class to extract and store all relevant variables from string values read from sensors.
  * The string values being read are from the chosen CSV file.
- * This class allows simple data access to individual data properties.
+ * This class allows easy data access to individual data properties.
  *
  * @author Harry Baines
  */

@@ -16,15 +16,15 @@ public class LineGraphComponent extends JPanel
     private ListIterator<Integer> listIt;
 
     // Graph variables
-    private final int PAD = 40;
+    private final int pad = 40;
     private double xInc;
     private double scale;
-    private int w;
-    private int h;
-    private double x;
-    private double y;
+    private int width;
+    private int height;
+    private double xPos;
+    private double yPos;
     private int sensorPoint;
-    private int i;
+    private int inc;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -37,42 +37,42 @@ public class LineGraphComponent extends JPanel
         Graphics2D g2 = (Graphics2D)g;
 
         // Width and height of component
-        w = getWidth();
-        h = getHeight();
+        width = getWidth();
+        height = getHeight();
 
         // Space between each point
-        xInc = (double) (w - 2*PAD) / (sensorPoints.size() - 1);
+        xInc = (double) (width - 2*pad) / (sensorPoints.size() - 1);
 
         // Scale: padding - maximum point value
-        scale = (double) (h - 2*PAD) / 300;
+        scale = (double) (height - 2*pad) / 300;
 
         // Axis lines
-        g2.draw(new Line2D.Double(PAD, PAD, PAD, h-PAD));
-        g2.draw(new Line2D.Double(PAD, h-PAD, w-PAD, h-PAD));
-        g2.draw(new Line2D.Double(PAD, PAD, PAD-5, PAD+5));
-        g2.draw(new Line2D.Double(PAD, PAD, PAD+5, PAD+5));
-        g2.draw(new Line2D.Double(w-PAD, h-PAD, w-PAD-5, h-PAD-5));
-        g2.draw(new Line2D.Double(w-PAD, h-PAD, w-PAD-5, h-PAD+5));
+        g2.draw(new Line2D.Double(pad, pad, pad, height-pad));
+        g2.draw(new Line2D.Double(pad, height-pad, width-pad, height-pad));
+        g2.draw(new Line2D.Double(pad, pad, pad-5, pad+5));
+        g2.draw(new Line2D.Double(pad, pad, pad+5, pad+5));
+        g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad-5));
+        g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad+5));
 
         // Y axis labels
         for (int i = 0; i < 7; i++)
-            g2.drawString(Integer.toString(i*50), PAD/4, h - PAD - (int)(i*scale*50));
+            g2.drawString(Integer.toString(i*50), pad/4, height - pad - (int)(i*scale*50));
 
         // X axis labels
         for (int i = 0; i < 8; i++)
-            g2.drawString(Integer.toString((i+1)*100), (i*100) + 80, getHeight() - 20);
+            g2.drawString(Integer.toString((i+1)*100), (i*100) + 80, height - 20);
 
-        // Iterate over all data points and mark data points with ellipses
-        i = 0;
+        // Iterate over all data points and mark data points with red ellipses
+        inc = 0;
         g2.setPaint(Color.red);
         listIt = sensorPoints.listIterator();
         while (listIt.hasNext())
         {
             sensorPoint = listIt.next();
-            x = PAD + i*xInc;
-            y = h - PAD - scale*sensorPoint;
-            g2.fill(new Ellipse2D.Double(x-2,y-2,1.5,1.5));
-            i++;
+            xPos = pad + inc*xInc;
+            yPos = height - pad - scale*sensorPoint;
+            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
+            inc++;
         }
     }
 

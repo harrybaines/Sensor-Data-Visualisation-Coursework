@@ -40,58 +40,59 @@ public class MainScreen extends JPanel implements ActionListener
     private JPanel botOptPanel;
 
     // UI Components
-    // Home Panel
-    private ScatterGraphComponent scatterGraph;
+    // HOME panel components
     private JButton button;
 
-    // Sensors Panel
+    // SENSORS panel components
     private JLabel addressLbl;
     private JTextField addressEntry;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
     private String selectedItem;
 
-    // List of sorting options for sensor devices
+    // Table variables
+    private final String[] columnNames = {"Time (s)", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data", "Date Obtained"};
+    private final int[] columnWidths = {60,20,20,20,10,60,20,150,170};
+    private LinkedList<Object> tableData = new LinkedList<Object>();
+    private JTable table;
+    private TableColumnModel columnModel;
+    private DefaultTableModel tableModel;
+    private JScrollPane scrollPane;
+    private ListIterator<DataLine> listIt;
+    private DataLine deviceToAdd; 
+
+    // Sort panel components
+    private JLabel sortLbl;
     private String[] sorts = new String[] {"Time since last seen", "Number of errors found", "Messages missed by receiver"};
     private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
     private JButton applySortBtn;
 
-    // List of visualisation options for sensor devices
+    // Visualise panel components
+    private JLabel visualiseAsLbl;
     private String[] visuals = new String[] {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
 
-    // Table variables
-    private static final String[] columnNames = {"Time (s)", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data", "Date Obtained"};
-    private LinkedList<Object> tableData = new LinkedList<Object>();
-    private JTable table;
-    private DefaultTableModel tableModel;
-    private TableColumnModel columnModel;
-
-    private ListIterator<DataLine> listIt;
-    private DataLine deviceToAdd; 
-    private JScrollPane scrollPane;
-
-    // Options panel
-    private JButton openFileBtn;
-
-    // Graph Dialog Window Variables
+	// Graph Dialog Visualisation Window Variables
+	private JFrame graphWindow;
+	private JPanel graphPanel;
+	private LinkedList<Integer> sensorPoints;
     private LinkedList<DataLine> flaggedDataLines = new LinkedList<DataLine>();
     private DataLine deviceToCheck;
     private JTabbedPane graphTabPane;
-    private int sensNo = 1;
-    private int inc = 1;
+    private int sensInc;
+    private String sensorString;
+    private int sensorValue;
+
+    // OPTIONS panel components
+    private JButton openFileBtn;
 
     /**
-     * Constructor to initialise panels and components on the UI.
+     * Constructor to initialise panels and place components on the UI.
      */
     public MainScreen()
     {
-        // Window, panes and panels
-        window = new JFrame();
-        tabPane = new JTabbedPane();
-
-        // Home panels
+        // HOME panels
         homePanel = new JPanel(new BorderLayout());
         topHomePanel = new JPanel(new GridLayout(2,1));
         midHomePanel = new JPanel(new GridLayout(2,2));
@@ -106,14 +107,13 @@ public class MainScreen extends JPanel implements ActionListener
         addressEntry = new JTextField();
         button = new JButton("Button");
 
-
-        // Sensor panels
+        // SENSORS panels
         sensorPanel = new JPanel(new BorderLayout());
         topSensPanel = new JPanel();
         midSensPanel = new JPanel(new GridLayout(2,1));
         botSensPanel = new JPanel(new BorderLayout());
 
-        // Sensor panel - bottom
+        // Sensors panel - bottom
         botSortPanel = new JPanel(new GridLayout(4,4));
         botVisPanel = new JPanel(new GridLayout(4,4));
 
@@ -143,7 +143,7 @@ public class MainScreen extends JPanel implements ActionListener
         resultsFoundLbl = new JLabel("No Results Found");
         topSensPanel.add(resultsFoundLbl);
 
-        // Sensor panel - table components
+        // Sensors panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
 
         table = new JTable(tableModel) 
@@ -156,22 +156,16 @@ public class MainScreen extends JPanel implements ActionListener
         table.setFillsViewportHeight(true);
         table.setRowHeight(30);
 
+        // Set the column widths in the table
         columnModel = table.getColumnModel();
-        columnModel.getColumn(0).setPreferredWidth(60);
-        columnModel.getColumn(1).setPreferredWidth(20);
-        columnModel.getColumn(2).setPreferredWidth(20);
-        columnModel.getColumn(3).setPreferredWidth(20);
-        columnModel.getColumn(4).setPreferredWidth(10);
-        columnModel.getColumn(5).setPreferredWidth(60);
-        columnModel.getColumn(6).setPreferredWidth(20);
-        columnModel.getColumn(7).setPreferredWidth(150);
-        columnModel.getColumn(8).setPreferredWidth(170);
-
+        for (int i = 0; i < columnWidths.length; i++)
+        	columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+   
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
 
-        // Sensor panel - sort panel
-        JLabel sortLbl = new JLabel("Sort Sensors By:");
+        // Sensors panel - sort panel
+        sortLbl = new JLabel("Sort Sensors By:");
         sortLbl.setHorizontalAlignment(SwingConstants.CENTER);
         sortLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         sortLbl.setForeground(Color.RED);
@@ -182,8 +176,8 @@ public class MainScreen extends JPanel implements ActionListener
         botSortPanel.add(sortOpts);
         botSortPanel.add(applySortBtn);
 
-        // Sensor panel - visualise panel
-        JLabel visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
+        // Sensors panel - visualise panel
+        visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
         visualiseAsLbl.setHorizontalAlignment(SwingConstants.CENTER);
         visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         visualiseAsLbl.setForeground(Color.RED);
@@ -194,8 +188,7 @@ public class MainScreen extends JPanel implements ActionListener
         botVisPanel.add(visOpts);
         botVisPanel.add(applyVisBtn);
 
-
-        // Option panels
+        // OPTIONS panels
         optionPanel = new JPanel(new BorderLayout());
         topOptPanel = new JPanel(new GridLayout(1,1));
         midOptPanel = new JPanel(new GridLayout(1,1));
@@ -211,8 +204,8 @@ public class MainScreen extends JPanel implements ActionListener
         openFileBtn.addActionListener(this);
         topOptPanel.add(openFileBtn);
 
-
         // Tab pane
+        tabPane = new JTabbedPane();
         tabPane.add("Home", homePanel);
         tabPane.add("Sensors", sensorPanel);
         tabPane.add("Options", optionPanel);
@@ -223,7 +216,7 @@ public class MainScreen extends JPanel implements ActionListener
     }
 
     /**
-     * A method to display the UI to the user.
+     * A method to display the UI to the user using the event-dispatching thread.
      */
     public void displayScreen() 
     {
@@ -246,39 +239,40 @@ public class MainScreen extends JPanel implements ActionListener
 
     /**
      * Detects if a button on the UI has been pressed.
-     * Allows the user to search for a CSV file.
+     * Allows the user to search for a sensor device, sort data in the table, visualise data as graphs and search for a CSV file.
      *
      * @param e the action event instance.
      */
     public void actionPerformed(ActionEvent e)
     {
+    	// Open a CSV file
         if (e.getSource() == openFileBtn)
         {
             data.findFile();
         }
+
+        // Search for device by address
         else if (e.getSource() == searchSensBut)
         {
             // Clear table contents
-            DefaultTableModel dm = (DefaultTableModel)table.getModel();
-            dm.getDataVector().removeAllElements();
-            dm.fireTableDataChanged(); // notifies the JTable that the model has changed
+            tableModel = (DefaultTableModel) table.getModel();
+            tableModel.getDataVector().removeAllElements();
+            tableModel.fireTableDataChanged();
 
             // Obtain linked list of devices found using user entry
             devicesFound = data.findDeviceByAddress(addressEntry.getText());
 
-            // Iterate over linked list
+            // Iterate over linked list and add to output
             listIt = devicesFound.listIterator();
 
-            // Add to output
             while (listIt.hasNext())
             {
                 // Obtain next device properties
                 deviceToAdd = listIt.next();
 
                 // Store properties from data line
-                Object[] dataToAdd = 
-                {
-                    deviceToAdd.getTime(), 
+                Object[] dataToAdd = {
+                	deviceToAdd.getTime(), 
                     deviceToAdd.getType(), 
                     deviceToAdd.getVersion(), 
                     deviceToAdd.getCounter(), 
@@ -286,89 +280,101 @@ public class MainScreen extends JPanel implements ActionListener
                     deviceToAdd.getAddress(), 
                     deviceToAdd.getStatus(), 
                     deviceToAdd.getSensorData(), 
-                    deviceToAdd.getDateObtained()
-                };
-
+                    deviceToAdd.getDateObtained()};
+                    
                 // Add row to table
                 tableModel.addRow(dataToAdd);
             }
             addressEntry.setText("");
 
+            // Results found data
             if (devicesFound.size() == 0)
                 resultsFoundLbl.setText("No Results Found");
             else
                 resultsFoundLbl.setText("Results Found: " + devicesFound.size());
         }
 
+        // Sort the data in the table
         else if (e.getSource() == applySortBtn)
         {
             System.out.println("SORT!");
         }
 
+        // Visualise data as graphs
         else if (e.getSource() == applyVisBtn)
-        {          
+        {         
+        	// Retrieve user input 
             selectedItem = visOpts.getSelectedItem().toString();
             if (selectedItem.equals("Scatter Graph") || selectedItem.equals("Sensor-Value-Over-Time Line Graph"))
             {
+				// Schedule a job for the event-dispatching thread: creating + showing the graph UI.
                 SwingUtilities.invokeLater(new Runnable() 
                 {
                     @Override
                     public void run() 
                     {
-                        JFrame f = new JFrame("Scatter Graphs");
-                        graphTabPane = new JTabbedPane();
-                        graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-                        setLayout(new BorderLayout());
-                        add(graphTabPane, BorderLayout.CENTER);
-
-                        int sensInc = 1;
-
-                        for (int i = 1; i <= 10; i++)
-                        {
-                            String sensorString = "Sensor " + i;
-
-                            JPanel graphPanel = new JPanel(new BorderLayout());
-
-                            LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
-
-                            // IMPLEMENT LINKEDLIST OF DATE POINTS HERE, USE %i TO GET OCCASIONAL DATA INTO THIS STRUCTURE
-
-                            // Iterate over devices found and extract individual sensor values
-                            listIt = devicesFound.listIterator();
-
-                            while (listIt.hasNext())
-                            {
-                                deviceToCheck = listIt.next();
-                                int sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
-                                sensorPoints.add(sensorValue);
-                            }
-
-                            // Add new graph type component to new panel
-                            if (visOpts.getSelectedItem().equals("Scatter Graph"))
-                            {
-                                graphPanel.add("Center", new ScatterGraphComponent(sensorPoints));
-                            }
-                            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-                            {
-                                graphPanel.add("Center", new LineGraphComponent(sensorPoints));
-                            }
-
-                            // Add new panel to tab pane
-                            graphTabPane.add(sensorString, graphPanel);
-                            f.add(graphTabPane);
-
-                            sensInc += 2;
-                        }
-
-                        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-                        f.setSize(1400,700);
-                        f.setLocation(200,200);
-                        f.setVisible(true);
-                        f.setResizable(false); 
+                        displayGraphs();
                     }
                 }); 
             }   
         }
     }
-}
 
+    /**
+     * A method to display the graph user interface.
+     */
+    private void displayGraphs()
+    {
+    	// Graph window details
+    	graphWindow = new JFrame("Scatter Graphs");
+	    graphTabPane = new JTabbedPane();
+	    graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
+	    graphWindow.setLayout(new BorderLayout());
+	    graphWindow.add(graphTabPane, BorderLayout.CENTER);
+
+	    sensInc = 1;
+
+	    // Plot all data graphs for all sensors
+	    for (int i = 1; i <= 10; i++)
+	    {
+	    	// Retrieve sensor name
+	        sensorString = "Sensor " + i;
+
+	        graphPanel = new JPanel(new BorderLayout());
+
+	        // IMPLEMENT LINKEDLIST OF DATE POINTS HERE, USE %i TO GET OCCASIONAL DATA INTO THIS STRUCTURE
+
+	        // Iterate over devices found and extract individual sensor values into linked list
+	        listIt = devicesFound.listIterator();
+	        sensorPoints = new LinkedList<Integer>();
+
+	        while (listIt.hasNext())
+	        {
+	            deviceToCheck = listIt.next();
+	            sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+	            sensorPoints.add(sensorValue);
+	        }
+
+	        // Add new graph type component to new panel
+	        if (visOpts.getSelectedItem().equals("Scatter Graph"))
+	            graphPanel.add("Center", new ScatterGraphComponent(sensorPoints));
+
+	        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+	            graphPanel.add("Center", new LineGraphComponent(sensorPoints));
+
+	        // Add new panel to tab pane 
+	        graphTabPane.add(sensorString, graphPanel);
+	        graphWindow.add(graphTabPane);
+
+	        // Increase sensor value to extract particular points from data string
+	        sensInc += 2;
+	    }
+
+	    // Further graph window details
+	    graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	    graphWindow.setSize(1400,700);
+	    graphWindow.setLocation(200,200);
+	    graphWindow.setVisible(true);
+	    graphWindow.setResizable(false); 
+    }
+}

@@ -1,16 +1,12 @@
 import java.io.*;
-import java.util.Scanner;
-import java.awt.*;
 import java.util.*;
-import java.util.Date;
-import java.util.Calendar;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import java.text.SimpleDateFormat;
 
 /**
  * This class provides functionality for simple operations on CSV files.
+ * A date can also be calculated given a number of seconds since the year 2000.
  *
  * @author Harry Baines
  */
@@ -24,6 +20,8 @@ public class SensorData
     private JFileChooser source;
     private FileNameExtensionFilter filter;
     private File selectedFile;
+    private String fileString;
+    private String extension;
     private BufferedReader reader;
     private String line = "";
 	private String[] dataLine;
@@ -37,6 +35,14 @@ public class SensorData
 
     // List iterator to iterate over all data lines
     private ListIterator<DataLine> listIt;
+
+	/**
+	 * Simple constructor to set the time zone for date calculations.
+	 */
+	public SensorData()
+	{
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+	}
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
@@ -53,39 +59,32 @@ public class SensorData
 		source.setAcceptAllFileFilterUsed(false);
 		source.setFileFilter(filter);
 
+		// Read CSV file
 		if (source.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) 
 		{   
+			// Store file data into variables
 			selectedFile = source.getSelectedFile();
-			String fileString = selectedFile.toString();
-			String extension = fileString.substring(fileString.lastIndexOf(".") + 1, fileString.length());
+			fileString = selectedFile.toString();
+			extension = fileString.substring(fileString.lastIndexOf(".") + 1, fileString.length());
 
+			// Error checking
 			if (!extension.equals("csv")) 
 			    JOptionPane.showMessageDialog(new JFrame(), "Error - please choose a CSV file!", "Error", JOptionPane.ERROR_MESSAGE);	
 			else
 			{
 				try 
 				{
+					// Open the file and read line by line
 					reader = new BufferedReader(new FileReader(selectedFile));
 		            while ((line = reader.readLine()) != null) 
 		            {
 		                // Comma = separator
 		                dataLine = line.split(",");
 
-		                // Add data components to single data entity, then add to array list
+		                // Add data components to single data entity, then add to linked list
 		                dataList.add(new DataLine(dataLine[0], dataLine[1], dataLine[2], dataLine[3], dataLine[4],
 		                	dataLine[5], dataLine[6], dataLine[7], addSecondsToDate(Integer.parseInt(dataLine[0]))));
-
-		                // Retrieve a data item
-		                // DataValue cur_data = dataList.get(0);
-		                // System.out.println(cur_data.getTime());
-
-		                //System.out.println("Time: " + dataLine[0] + ", Type: " + dataLine[1] + ", Version: " + dataLine[2]
-		                	//+ ", Counter: " + dataLine[3] + ", Via: " + dataLine[4] + ", Address: " + dataLine[5]
-		                	//+ ", Status: " + dataLine[6] + ", Sensor Data: " + dataLine[7]);
-
-		                //System.out.println("Date: " + addSecondsToDate(Integer.parseInt(dataLine[0])) + "\n");
 		            }
-
 		            // Show success dialog
 					JOptionPane.showMessageDialog(new JFrame(), "File successfully opened!");
 				}
@@ -117,7 +116,7 @@ public class SensorData
 
 	    // Iterate over data lines - search for device, add to linked list
  		listIt = dataList.listIterator();
-
+ 		
         while (listIt.hasNext())
         {
         	nextData = listIt.next();
@@ -138,25 +137,5 @@ public class SensorData
         cal = new GregorianCalendar(2000,00,01,0,0,0);
         cal.add(Calendar.SECOND, s);
         return (dateFormat.format(cal.getTime()));
-	}
-
-	/**
-	 * Main method to set the initial time zone and create relevant instances to begin the program.
-	 * @param args Unused.
-	 */
-	public static void main(String[] args)
-	{
-		// Set time zone
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
-		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
-        SwingUtilities.invokeLater(new Runnable() 
-        {
-            public void run() 
-            {
-                MainScreen m = new MainScreen();
-                m.displayScreen();
-            }
-        });
-	}
+	}	
 }
