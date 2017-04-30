@@ -11,9 +11,11 @@ import java.util.*;
  */
 public class ScatterGraphComponent extends JPanel 
 {
-    // Linked list to store sensor data and iterator
+    // Linked list to store sensor data and iterator to iterate over the linked list
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
     private ListIterator<Integer> listIt;
+    private LinkedList<String> datePoints = new LinkedList<String>();
+    private ListIterator<String> listItDates;
 
     // Graph variables
     private final int pad = 40;
@@ -24,7 +26,9 @@ public class ScatterGraphComponent extends JPanel
     private double xPos;
     private double yPos;
     private int sensorPoint;
+    private String datePoint;
     private int inc;
+    private int i = 0;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -58,11 +62,19 @@ public class ScatterGraphComponent extends JPanel
         for (int i = 0; i < 7; i++)
             g2.drawString(Integer.toString(i*50), pad/4, height - pad - (int)(i*scale*50));
 
-        // X axis labels
-        for (int i = 0; i < 8; i++)
-            g2.drawString(Integer.toString((i+1)*100), (i*100) + 80, height - 20);
+        // X axis labels - iterate over all date data points and mark on X axis
+        i = 0;
+        g2.setPaint(Color.BLACK);
+        g2.setFont(new Font("default", Font.BOLD, 11));
+        listItDates = datePoints.listIterator();
+        while (listItDates.hasNext())
+        {
+            datePoint = listItDates.next();
+            g2.drawString(datePoint, 50 + (i*170), getHeight() - 20);
+            i++;
+        }
 
-        // Iterate over all data points and mark data points with red ellipses
+        // Data points - iterate over all data points and mark data points with red ellipses
         inc = 0;
         g2.setPaint(Color.red);
         listIt = sensorPoints.listIterator();
@@ -79,8 +91,9 @@ public class ScatterGraphComponent extends JPanel
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
      */
-    public ScatterGraphComponent(LinkedList<Integer> sensorPoints)
+    public ScatterGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints)
     {
         this.sensorPoints = sensorPoints;
+        this.datePoints = datePoints;
     }
 }

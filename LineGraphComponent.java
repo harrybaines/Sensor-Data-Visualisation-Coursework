@@ -11,9 +11,11 @@ import java.util.*;
  */
 public class LineGraphComponent extends JPanel 
 {
-    // Linked list to store sensor data and iterator
+    // Linked list to store sensor data and iterator to iterate over the linked list
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
     private ListIterator<Integer> listIt;
+    private LinkedList<String> datePoints = new LinkedList<String>();
+    private ListIterator<String> listItDates;
 
     // Graph variables
     private final int pad = 40;
@@ -24,7 +26,9 @@ public class LineGraphComponent extends JPanel
     private double xPos;
     private double yPos;
     private int sensorPoint;
+    private String datePoint;
     private int inc;
+    private int i = 0;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -74,13 +78,25 @@ public class LineGraphComponent extends JPanel
             g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
             inc++;
         }
+
+        // Iterate over all date data points and mark on X axis
+        i = 0;
+        g2.setPaint(Color.BLACK);
+        listItDates = datePoints.listIterator();
+        while (listItDates.hasNext())
+        {
+            datePoint = listItDates.next();
+            g2.drawString(datePoint, (i*100) + 80, getHeight() - 20);
+            i++;
+        }
     }
 
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
      */
-    public LineGraphComponent(LinkedList<Integer> sensorPoints)
+    public LineGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints)
     {
         this.sensorPoints = sensorPoints;
+        this.datePoints = datePoints;
     }
 }

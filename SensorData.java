@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 public class SensorData
 {
 	// Calendar/Date instance variables
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss zzz yyyy", Locale.UK);
+	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
     private GregorianCalendar cal;
 
     // Data and file variables
@@ -116,7 +116,7 @@ public class SensorData
 
 	    // Iterate over data lines - search for device, add to linked list
  		listIt = dataList.listIterator();
- 		
+
         while (listIt.hasNext())
         {
         	nextData = listIt.next();

@@ -73,16 +73,20 @@ public class MainScreen extends JPanel implements ActionListener
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
 
-	// Graph Dialog Visualisation Window Variables
-	private JFrame graphWindow;
-	private JPanel graphPanel;
-	private LinkedList<Integer> sensorPoints;
+    // Graph Dialog Visualisation Window Variables
+    private JFrame graphWindow;
+    private JPanel graphPanel;
+    private LinkedList<Integer> sensorPoints;
+    private LinkedList<String> datePoints;
+    private int sensorValue;
+    private String dateValue;
+    private int dateCounter;
+    private int datesAdded;
     private LinkedList<DataLine> flaggedDataLines = new LinkedList<DataLine>();
     private DataLine deviceToCheck;
     private JTabbedPane graphTabPane;
     private int sensInc;
     private String sensorString;
-    private int sensorValue;
 
     // OPTIONS panel components
     private JButton openFileBtn;
@@ -159,7 +163,7 @@ public class MainScreen extends JPanel implements ActionListener
         // Set the column widths in the table
         columnModel = table.getColumnModel();
         for (int i = 0; i < columnWidths.length; i++)
-        	columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+            columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
    
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
@@ -245,7 +249,7 @@ public class MainScreen extends JPanel implements ActionListener
      */
     public void actionPerformed(ActionEvent e)
     {
-    	// Open a CSV file
+        // Open a CSV file
         if (e.getSource() == openFileBtn)
         {
             data.findFile();
@@ -272,7 +276,7 @@ public class MainScreen extends JPanel implements ActionListener
 
                 // Store properties from data line
                 Object[] dataToAdd = {
-                	deviceToAdd.getTime(), 
+                    deviceToAdd.getTime(), 
                     deviceToAdd.getType(), 
                     deviceToAdd.getVersion(), 
                     deviceToAdd.getCounter(), 
@@ -303,20 +307,26 @@ public class MainScreen extends JPanel implements ActionListener
         // Visualise data as graphs
         else if (e.getSource() == applyVisBtn)
         {         
-        	// Retrieve user input 
+            // Retrieve user input 
             selectedItem = visOpts.getSelectedItem().toString();
-            if (selectedItem.equals("Scatter Graph") || selectedItem.equals("Sensor-Value-Over-Time Line Graph"))
+
+            if (devicesFound.size() == 0)
+                JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a sensor first.", "Error", JOptionPane.ERROR_MESSAGE);   
+            else
             {
-				// Schedule a job for the event-dispatching thread: creating + showing the graph UI.
-                SwingUtilities.invokeLater(new Runnable() 
+                if (selectedItem.equals("Scatter Graph") || selectedItem.equals("Sensor-Value-Over-Time Line Graph"))
                 {
-                    @Override
-                    public void run() 
+                    // Schedule a job for the event-dispatching thread: creating + showing the graph UI.
+                    SwingUtilities.invokeLater(new Runnable() 
                     {
-                        displayGraphs();
-                    }
-                }); 
-            }   
+                        @Override
+                        public void run() 
+                        {
+                            displayGraphs();
+                        }
+                    }); 
+                } 
+            } 
         }
     }
 
@@ -325,56 +335,65 @@ public class MainScreen extends JPanel implements ActionListener
      */
     private void displayGraphs()
     {
-    	// Graph window details
-    	graphWindow = new JFrame("Scatter Graphs");
-	    graphTabPane = new JTabbedPane();
-	    graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
-	    graphWindow.setLayout(new BorderLayout());
-	    graphWindow.add(graphTabPane, BorderLayout.CENTER);
+        graphWindow = new JFrame("Scatter Graphs");
+        graphTabPane = new JTabbedPane();
+        graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
+        graphWindow.setLayout(new BorderLayout());
+        graphWindow.add(graphTabPane, BorderLayout.CENTER);
 
-	    sensInc = 1;
+        sensInc = 1;
 
-	    // Plot all data graphs for all sensors
-	    for (int i = 1; i <= 10; i++)
-	    {
-	    	// Retrieve sensor name
-	        sensorString = "Sensor " + i;
+        // Plot all data graphs for all sensors
+        for (int i = 1; i <= 10; i++)
+        {
+            // Retrieve sensor name and create new panel
+            sensorString = "Sensor " + i;
+            graphPanel = new JPanel(new BorderLayout());
+            dateCounter = 0;
+            datesAdded = 0;
 
-	        graphPanel = new JPanel(new BorderLayout());
+            // Iterate over devices found and extract individual sensor values into linked list
+            listIt = devicesFound.listIterator();
+            sensorPoints = new LinkedList<Integer>();
+            datePoints = new LinkedList<String>();
 
-	        // IMPLEMENT LINKEDLIST OF DATE POINTS HERE, USE %i TO GET OCCASIONAL DATA INTO THIS STRUCTURE
+            while (listIt.hasNext())
+            {
+                deviceToCheck = listIt.next();
+                sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+                sensorPoints.add(sensorValue);
+                dateCounter++;
 
-	        // Iterate over devices found and extract individual sensor values into linked list
-	        listIt = devicesFound.listIterator();
-	        sensorPoints = new LinkedList<Integer>();
+                // Add occasional date - used to display on graph component
+                if ((dateCounter == (int)(devicesFound.size()/8)) && (datesAdded < 8))
+                {
+                    dateValue = deviceToCheck.getDateObtained();
+                    datePoints.add(dateValue);
+                    datesAdded++;
+                    dateCounter = 0;
+                }
+            }
 
-	        while (listIt.hasNext())
-	        {
-	            deviceToCheck = listIt.next();
-	            sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
-	            sensorPoints.add(sensorValue);
-	        }
+            // Add new graph type component to new panel
+            if (visOpts.getSelectedItem().equals("Scatter Graph"))
+                graphPanel.add("Center", new ScatterGraphComponent(sensorPoints, datePoints));
 
-	        // Add new graph type component to new panel
-	        if (visOpts.getSelectedItem().equals("Scatter Graph"))
-	            graphPanel.add("Center", new ScatterGraphComponent(sensorPoints));
+            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+                graphPanel.add("Center", new LineGraphComponent(sensorPoints, datePoints));
 
-	        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-	            graphPanel.add("Center", new LineGraphComponent(sensorPoints));
+            // Add new panel to tab pane 
+            graphTabPane.add(sensorString, graphPanel);
+            graphWindow.add(graphTabPane);
 
-	        // Add new panel to tab pane 
-	        graphTabPane.add(sensorString, graphPanel);
-	        graphWindow.add(graphTabPane);
+            // Increase sensor value to extract particular points from data string
+            sensInc += 2;
+        }
 
-	        // Increase sensor value to extract particular points from data string
-	        sensInc += 2;
-	    }
-
-	    // Further graph window details
-	    graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-	    graphWindow.setSize(1400,700);
-	    graphWindow.setLocation(200,200);
-	    graphWindow.setVisible(true);
-	    graphWindow.setResizable(false); 
+        // Further graph window details
+        graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        graphWindow.setSize(1400,700);
+        graphWindow.setLocation(200,200);
+        graphWindow.setVisible(true);
+        graphWindow.setResizable(false); 
     }
 }
