@@ -127,6 +127,46 @@ public class SensorData
 	}
 
 	/**
+	 * Method to return the total number of errors found in the data provided.
+	 * @return The total number of errors - index 0 = total error count, index 1 = different errors count 
+	 */
+	public int[] findNoOfErrors()
+	{
+		int[] errorsArray = new int[2];
+		int differentErrorCount = 0;
+
+	    // Iterate over all data lines and find errors, add to array
+ 		listIt = dataList.listIterator();
+
+        while (listIt.hasNext())
+        {
+        	nextData = listIt.next();
+
+        	System.out.println("Status: " + nextData.getStatus());
+
+        	// Find an error
+        	if (!(nextData.getStatus().equals("0") || (nextData.getStatus().equals("00"))))
+        	{
+        		errorsArray[0]++;
+        	}
+
+        	// Find total number of different errors
+        	//errorsArray[1]++;
+        	
+        }
+		return errorsArray;
+	}
+
+	/**
+	 * Returns the name of the file opened.
+	 * @return The opened file as a string.
+	 */
+	public String getFileName()
+	{
+		return ("Currently Using File: \"" + selectedFile.getName() + "\"");
+	}
+
+	/**
 	 * Adds a specified amount of seconds to the date set at the year 2000.
 	 *
 	 * @param s The number of seconds to add to the date.

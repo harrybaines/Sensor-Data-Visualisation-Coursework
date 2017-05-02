@@ -41,7 +41,9 @@ public class MainScreen extends JPanel implements ActionListener
 
     // UI Components
     // HOME panel components
-    private JButton button;
+    private JLabel titleLbl;
+    private JLabel versionLbl;
+    private JLabel fileOpenedLbl;
 
     // SENSORS panel components
     private JLabel addressLbl;
@@ -98,9 +100,10 @@ public class MainScreen extends JPanel implements ActionListener
     {
         // HOME panels
         homePanel = new JPanel(new BorderLayout());
-        topHomePanel = new JPanel(new GridLayout(2,1));
-        midHomePanel = new JPanel(new GridLayout(2,2));
-        botHomePanel = new JPanel(new GridLayout(1,1));
+        topHomePanel = new JPanel(new GridBagLayout());
+        midHomePanel = new JPanel(new GridLayout(1,2));
+        botHomePanel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
 
         // Add panels to home  
         homePanel.add("North", topHomePanel);
@@ -108,8 +111,61 @@ public class MainScreen extends JPanel implements ActionListener
         homePanel.add("South", botHomePanel);
 
         // Components - Home
-        addressEntry = new JTextField();
-        button = new JButton("Button");
+        titleLbl = new JLabel("Sensor Data Visualisation");
+        titleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLbl.setFont(new Font("Helvetica", Font.BOLD, 26));
+        titleLbl.setForeground(Color.BLUE);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0.0;
+		c.gridwidth = 3;
+		c.gridx = 0;
+		c.gridy = 1;
+		c.insets = new Insets(20,0,0,0);
+		topHomePanel.add(titleLbl, c);
+
+		versionLbl = new JLabel("v.1.0");
+        versionLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        versionLbl.setFont(new Font("Helvetica", Font.BOLD, 16));
+        versionLbl.setForeground(Color.BLACK);
+        c.ipady = 5;
+		c.gridy = 2;
+		c.insets = new Insets(0,10,0,0);
+		topHomePanel.add(versionLbl, c);
+
+        fileOpenedLbl = new JLabel("No File Opened");
+        fileOpenedLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        fileOpenedLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        fileOpenedLbl.setForeground(Color.BLACK);
+        c.ipady = 5;
+		c.gridy = 3;
+		c.insets = new Insets(30,0,0,0);
+		topHomePanel.add(fileOpenedLbl, c);
+
+		// Home panel - middle
+		double[] values = new double[3];
+	    String[] names = new String[3];
+	    values[0] = 1000;
+	    names[0] = "Records Found";
+	    values[1] = 100;
+	    names[1] = "Errors Found";
+	    values[2] = 5;
+	    names[2] = "Different Errors Found";
+
+	    midHomePanel.add(new BarGraphComponent(values, names, "Errors Found From Data"));
+	    midHomePanel.add(new BarGraphComponent(values, names, "Errors Found From Data"));
+
+       	// Home panel - bottom
+        openFileBtn = new JButton("Open CSV File");
+        openFileBtn.addActionListener(this);
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 40;
+		c.weightx = 0.0;
+		c.gridwidth = 3;
+		c.gridx = 0;
+		c.gridy = 1;
+		c.insets = new Insets(10,10,10,10);
+		botHomePanel.add(openFileBtn, c);
 
         // SENSORS panels
         sensorPanel = new JPanel(new BorderLayout());
@@ -204,10 +260,7 @@ public class MainScreen extends JPanel implements ActionListener
         optionPanel.add("South", botOptPanel);
 
         // Components - Options
-        openFileBtn = new JButton("Open File");
-        openFileBtn.addActionListener(this);
-        topOptPanel.add(openFileBtn);
-
+        
         // Tab pane
         tabPane = new JTabbedPane();
         tabPane.add("Home", homePanel);
@@ -216,7 +269,6 @@ public class MainScreen extends JPanel implements ActionListener
         tabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
         setLayout(new BorderLayout());
         add(tabPane, BorderLayout.CENTER);
-        add(button, BorderLayout.SOUTH);
     }
 
     /**
@@ -253,6 +305,8 @@ public class MainScreen extends JPanel implements ActionListener
         if (e.getSource() == openFileBtn)
         {
             data.findFile();
+            fileOpenedLbl.setText(data.getFileName());
+            System.out.println("Total errors found: " + data.findNoOfErrors()[0]);
         }
 
         // Search for device by address
