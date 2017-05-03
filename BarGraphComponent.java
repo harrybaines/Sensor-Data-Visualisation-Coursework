@@ -11,11 +11,11 @@ import java.util.*;
  */
 public class BarGraphComponent extends JPanel 
 {
-    private double[] values;
+    private int[] values;
     private String[] names;
     private String title;
 
-    public BarGraphComponent(double[] v, String[] n, String t) {
+    public BarGraphComponent(int[] v, String[] n, String t) {
        names = n;
        values = v;
        title = t;
@@ -28,6 +28,7 @@ public class BarGraphComponent extends JPanel
     protected void paintComponent(Graphics g) 
     {
         super.paintComponent(g);
+
         if (values == null || values.length == 0)
           return;
         double minValue = 0;
@@ -39,7 +40,10 @@ public class BarGraphComponent extends JPanel
             maxValue = values[i];
         }
 
+
         Dimension d = getSize();
+        System.out.println(d);
+
         int clientWidth = d.width;
         int clientHeight = d.height;
         int barWidth = clientWidth / values.length;
@@ -51,7 +55,7 @@ public class BarGraphComponent extends JPanel
 
         int titleWidth = titleFontMetrics.stringWidth(title);
         int y = titleFontMetrics.getAscent();
-        int x = (clientWidth - titleWidth) / 2;
+        int x = (clientWidth - titleWidth)/2;
         g.setFont(titleFont);
         g.drawString(title, x, y);
 

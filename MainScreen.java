@@ -1,6 +1,9 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.io.*;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.*;
@@ -41,9 +44,14 @@ public class MainScreen extends JPanel implements ActionListener
 
     // UI Components
     // HOME panel components
+    private GridBagConstraints c;
     private JLabel titleLbl;
     private JLabel versionLbl;
     private JLabel fileOpenedLbl;
+    private int[] barGraphValues = {1000,10,4,5};
+    private final String[] xAxisNames = {"Records Found", "Errors Found", "Different Errors Found", "Different Receivers Found"};
+    private JButton openFileBtn;
+    private JButton exportBtn;
 
     // SENSORS panel components
     private JLabel addressLbl;
@@ -89,9 +97,12 @@ public class MainScreen extends JPanel implements ActionListener
     private JTabbedPane graphTabPane;
     private int sensInc;
     private String sensorString;
+    private JButton[] exportBtns = new JButton[10];
+    private JPanel[] graphPanels = new JPanel[10];
+    private JFileChooser selectDest;
+    private BufferedImage img;
 
     // OPTIONS panel components
-    private JButton openFileBtn;
 
     /**
      * Constructor to initialise panels and place components on the UI.
@@ -101,9 +112,9 @@ public class MainScreen extends JPanel implements ActionListener
         // HOME panels
         homePanel = new JPanel(new BorderLayout());
         topHomePanel = new JPanel(new GridBagLayout());
-        midHomePanel = new JPanel(new GridLayout(1,2));
+        midHomePanel = new JPanel(new BorderLayout());
         botHomePanel = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
+        c = new GridBagConstraints();
 
         // Add panels to home  
         homePanel.add("North", topHomePanel);
@@ -142,17 +153,7 @@ public class MainScreen extends JPanel implements ActionListener
 		topHomePanel.add(fileOpenedLbl, c);
 
 		// Home panel - middle
-		double[] values = new double[3];
-	    String[] names = new String[3];
-	    values[0] = 1000;
-	    names[0] = "Records Found";
-	    values[1] = 100;
-	    names[1] = "Errors Found";
-	    values[2] = 5;
-	    names[2] = "Different Errors Found";
-
-	    midHomePanel.add(new BarGraphComponent(values, names, "Errors Found From Data"));
-	    midHomePanel.add(new BarGraphComponent(values, names, "Errors Found From Data"));
+	    midHomePanel.add("Center", new BarGraphComponent(barGraphValues, xAxisNames, "Data Statistics"));
 
        	// Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
@@ -161,11 +162,17 @@ public class MainScreen extends JPanel implements ActionListener
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.ipady = 40;
 		c.weightx = 0.0;
-		c.gridwidth = 3;
+		c.gridwidth = 1;
 		c.gridx = 0;
 		c.gridy = 1;
 		c.insets = new Insets(10,10,10,10);
 		botHomePanel.add(openFileBtn, c);
+
+        exportBtn = new JButton("Save Graph To File");
+        exportBtn.addActionListener(this);
+
+        c.gridx = 1;
+        botHomePanel.add(exportBtn, c);
 
         // SENSORS panels
         sensorPanel = new JPanel(new BorderLayout());
@@ -297,7 +304,7 @@ public class MainScreen extends JPanel implements ActionListener
      * Detects if a button on the UI has been pressed.
      * Allows the user to search for a sensor device, sort data in the table, visualise data as graphs and search for a CSV file.
      *
-     * @param e the action event instance.
+     * @param e The action event instance.
      */
     public void actionPerformed(ActionEvent e)
     {
@@ -306,7 +313,13 @@ public class MainScreen extends JPanel implements ActionListener
         {
             data.findFile();
             fileOpenedLbl.setText(data.getFileName());
-            System.out.println("Total errors found: " + data.findNoOfErrors()[0]);
+
+            // Create bar graph with statistics on data from chosen file
+            barGraphValues[0] = data.getNoOfRecords();
+            barGraphValues[1] = data.findNoOfErrors()[1];
+            barGraphValues[2] = data.findNoOfErrors()[0];
+            barGraphValues[3] = data.findNoOfErrors()[1];
+            midHomePanel.add("Center", new BarGraphComponent(barGraphValues, xAxisNames, "Data Statistics"));
         }
 
         // Search for device by address
@@ -329,7 +342,8 @@ public class MainScreen extends JPanel implements ActionListener
                 deviceToAdd = listIt.next();
 
                 // Store properties from data line
-                Object[] dataToAdd = {
+                Object[] dataToAdd = 
+                {
                     deviceToAdd.getTime(), 
                     deviceToAdd.getType(), 
                     deviceToAdd.getVersion(), 
@@ -338,7 +352,8 @@ public class MainScreen extends JPanel implements ActionListener
                     deviceToAdd.getAddress(), 
                     deviceToAdd.getStatus(), 
                     deviceToAdd.getSensorData(), 
-                    deviceToAdd.getDateObtained()};
+                    deviceToAdd.getDateObtained()
+                };
                     
                 // Add row to table
                 tableModel.addRow(dataToAdd);
@@ -382,6 +397,20 @@ public class MainScreen extends JPanel implements ActionListener
                 } 
             } 
         }
+
+        // Check for button export button click on home screen
+        else if (e.getSource() == exportBtn)
+        {
+            saveToFile(midHomePanel);
+        }
+
+        // Check for export button click on graph panels
+        else
+        {
+            for (int i = 0; i < exportBtns.length; i++)
+                if (e.getSource() == exportBtns[i])
+                    saveToFile(graphPanels[i]);
+        }    
     }
 
     /**
@@ -402,7 +431,7 @@ public class MainScreen extends JPanel implements ActionListener
         {
             // Retrieve sensor name and create new panel
             sensorString = "Sensor " + i;
-            graphPanel = new JPanel(new BorderLayout());
+            graphPanels[i-1] = new JPanel(new BorderLayout());
             dateCounter = 0;
             datesAdded = 0;
 
@@ -430,14 +459,19 @@ public class MainScreen extends JPanel implements ActionListener
 
             // Add new graph type component to new panel
             if (visOpts.getSelectedItem().equals("Scatter Graph"))
-                graphPanel.add("Center", new ScatterGraphComponent(sensorPoints, datePoints));
+                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints));
 
             else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-                graphPanel.add("Center", new LineGraphComponent(sensorPoints, datePoints));
+                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints));
 
             // Add new panel to tab pane 
-            graphTabPane.add(sensorString, graphPanel);
+            graphTabPane.add(sensorString, graphPanels[i-1]);
             graphWindow.add(graphTabPane);
+
+            // Add new export button to each panel
+            exportBtns[i-1] = new JButton("Save To File");
+            exportBtns[i-1].addActionListener(this);
+            graphPanels[i-1].add("South", exportBtns[i-1]);
 
             // Increase sensor value to extract particular points from data string
             sensInc += 2;
@@ -450,4 +484,27 @@ public class MainScreen extends JPanel implements ActionListener
         graphWindow.setVisible(true);
         graphWindow.setResizable(false); 
     }
+
+    /**
+     * Method to save painted components on a panel to a png file in the users chosen directory.
+     * @param panel The panel that contains the components to be saved to a png file.
+     */
+    private void saveToFile(JPanel panel)
+    {
+        selectDest = new JFileChooser();
+        selectDest.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
+        selectDest.showSaveDialog(null);
+
+        img = new BufferedImage(panel.getWidth(), panel.getHeight()-40, BufferedImage.TYPE_INT_RGB);
+        panel.paint(img.getGraphics());
+        try {
+            ImageIO.write(img, "png", new File(selectDest.getSelectedFile().getPath() + ".png"));
+            JOptionPane.showMessageDialog(new JFrame(), "Graph saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }
+
+
+

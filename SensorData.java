@@ -167,6 +167,15 @@ public class SensorData
 	}
 
 	/**
+	 * Method to return the total number of records in the file.
+	 * @return The number of records as an integer.
+	 */
+	public int getNoOfRecords()
+	{
+		return dataList.size();
+	}
+
+	/**
 	 * Adds a specified amount of seconds to the date set at the year 2000.
 	 *
 	 * @param s The number of seconds to add to the date.
