@@ -75,7 +75,7 @@ public class DataLine
 
 	/**
  	 * Returns the number of messages being missed by the receiver.
- 	 * @return The counter value as an integer.
+ 	 * @return The counter value as a string.
  	 */
  	public String getCounter()
  	{

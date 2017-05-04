@@ -12,11 +12,10 @@ import java.util.*;
 public class BarGraphComponent extends JPanel 
 {
     private int[] values;
-    private String[] names;
+    private final String[] xAxisNames = {"Records Found", "Errors Found", "Different Errors Found", "Different Receivers Found"};
     private String title;
 
-    public BarGraphComponent(int[] v, String[] n, String t) {
-       names = n;
+    public BarGraphComponent(int[] v, String t) {
        values = v;
        title = t;
     }
@@ -42,7 +41,7 @@ public class BarGraphComponent extends JPanel
 
 
         Dimension d = getSize();
-        System.out.println(d);
+        //System.out.println(d);
 
         int clientWidth = d.width;
         int clientHeight = d.height;
@@ -82,9 +81,9 @@ public class BarGraphComponent extends JPanel
           g.fillRect(valueX, valueY, barWidth - 2, height);
           g.setColor(Color.black);
           g.drawRect(valueX, valueY, barWidth - 2, height);
-          int labelWidth = labelFontMetrics.stringWidth(names[i]);
+          int labelWidth = labelFontMetrics.stringWidth(xAxisNames[i]);
           x = i * barWidth + (barWidth - labelWidth) / 2;
-          g.drawString(names[i], x, y);
+          g.drawString(xAxisNames[i], x, y);
         }
     }
 }

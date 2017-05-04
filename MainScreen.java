@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.text.Collator;
 import java.io.*;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -49,7 +50,6 @@ public class MainScreen extends JPanel implements ActionListener
     private JLabel versionLbl;
     private JLabel fileOpenedLbl;
     private int[] barGraphValues = {1000,10,4,5};
-    private final String[] xAxisNames = {"Records Found", "Errors Found", "Different Errors Found", "Different Receivers Found"};
     private JButton openFileBtn;
     private JButton exportBtn;
 
@@ -73,7 +73,7 @@ public class MainScreen extends JPanel implements ActionListener
 
     // Sort panel components
     private JLabel sortLbl;
-    private String[] sorts = new String[] {"Time since last seen", "Number of errors found", "Messages missed by receiver"};
+    private String[] sorts = new String[] {"Time since last seen (DESC)", "Time since last seen (ASC)", "Number of errors found", "Messages missed by receiver"};
     private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
     private JButton applySortBtn;
 
@@ -153,7 +153,7 @@ public class MainScreen extends JPanel implements ActionListener
 		topHomePanel.add(fileOpenedLbl, c);
 
 		// Home panel - middle
-	    midHomePanel.add("Center", new BarGraphComponent(barGraphValues, xAxisNames, "Data Statistics"));
+	    midHomePanel.add("Center", new BarGraphComponent(barGraphValues, "Data Statistics"));
 
        	// Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
@@ -311,66 +311,30 @@ public class MainScreen extends JPanel implements ActionListener
         // Open a CSV file
         if (e.getSource() == openFileBtn)
         {
-            data.findFile();
-            fileOpenedLbl.setText(data.getFileName());
+            if (data.findFile())
+            {
+            	fileOpenedLbl.setText(data.getFileName());
 
-            // Create bar graph with statistics on data from chosen file
-            barGraphValues[0] = data.getNoOfRecords();
-            barGraphValues[1] = data.findNoOfErrors()[1];
-            barGraphValues[2] = data.findNoOfErrors()[0];
-            barGraphValues[3] = data.findNoOfErrors()[1];
-            midHomePanel.add("Center", new BarGraphComponent(barGraphValues, xAxisNames, "Data Statistics"));
+	            // Create bar graph with statistics on data from chosen file
+	            barGraphValues[0] = data.getNoOfRecords();
+	            barGraphValues[1] = data.findNoOfErrors()[0];
+	            barGraphValues[2] = data.findNoOfErrors()[0];
+	            barGraphValues[3] = data.findNoOfErrors()[1];
+	            midHomePanel.add("Center", new BarGraphComponent(barGraphValues, "Data Statistics"));
+            }
         }
 
         // Search for device by address
         else if (e.getSource() == searchSensBut)
         {
-            // Clear table contents
-            tableModel = (DefaultTableModel) table.getModel();
-            tableModel.getDataVector().removeAllElements();
-            tableModel.fireTableDataChanged();
-
-            // Obtain linked list of devices found using user entry
-            devicesFound = data.findDeviceByAddress(addressEntry.getText());
-
-            // Iterate over linked list and add to output
-            listIt = devicesFound.listIterator();
-
-            while (listIt.hasNext())
-            {
-                // Obtain next device properties
-                deviceToAdd = listIt.next();
-
-                // Store properties from data line
-                Object[] dataToAdd = 
-                {
-                    deviceToAdd.getTime(), 
-                    deviceToAdd.getType(), 
-                    deviceToAdd.getVersion(), 
-                    deviceToAdd.getCounter(), 
-                    deviceToAdd.getVia(),
-                    deviceToAdd.getAddress(), 
-                    deviceToAdd.getStatus(), 
-                    deviceToAdd.getSensorData(), 
-                    deviceToAdd.getDateObtained()
-                };
-                    
-                // Add row to table
-                tableModel.addRow(dataToAdd);
-            }
-            addressEntry.setText("");
-
-            // Results found data
-            if (devicesFound.size() == 0)
-                resultsFoundLbl.setText("No Results Found");
-            else
-                resultsFoundLbl.setText("Results Found: " + devicesFound.size());
+        	// Re-populate table with data from user input device address
+        	populateTableData();
         }
 
         // Sort the data in the table
         else if (e.getSource() == applySortBtn)
         {
-            System.out.println("SORT!");
+		    populateTableData();
         }
 
         // Visualise data as graphs
@@ -378,6 +342,9 @@ public class MainScreen extends JPanel implements ActionListener
         {         
             // Retrieve user input 
             selectedItem = visOpts.getSelectedItem().toString();
+
+            // Ensure data is in ordered ascending form
+            sortData(sorts[0]);
 
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a sensor first.", "Error", JOptionPane.ERROR_MESSAGE);   
@@ -483,6 +450,74 @@ public class MainScreen extends JPanel implements ActionListener
         graphWindow.setLocation(200,200);
         graphWindow.setVisible(true);
         graphWindow.setResizable(false); 
+    }
+
+    /**
+     * Method to clear the current contents of the table and re-populate it with sorted/searched data.
+     */
+    private void populateTableData()
+    {
+		// Clear table contents
+        tableModel = (DefaultTableModel) table.getModel();
+        tableModel.getDataVector().removeAllElements();
+        tableModel.fireTableDataChanged();
+
+    	// If user has searched for data, display that, otherwise show all
+        devicesFound = data.findDeviceByAddress(addressEntry.getText());
+
+        // Sort the data in the table from user input
+        sortData(sortOpts.getSelectedItem().toString());
+
+        // Iterate over linked list and add to output
+        listIt = devicesFound.listIterator();
+
+        while (listIt.hasNext())
+        {
+            // Obtain next device properties
+            deviceToAdd = listIt.next();
+
+            // Store properties from data line
+            Object[] dataToAdd = 
+            {
+                deviceToAdd.getTime(), 
+                deviceToAdd.getType(), 
+                deviceToAdd.getVersion(), 
+                deviceToAdd.getCounter(), 
+                deviceToAdd.getVia(),
+                deviceToAdd.getAddress(), 
+                deviceToAdd.getStatus(), 
+                deviceToAdd.getSensorData(), 
+                deviceToAdd.getDateObtained()
+            };
+                
+            // Add row to table
+            tableModel.addRow(dataToAdd);
+        }
+
+        // Results found data
+        if (devicesFound.size() == 0)
+            resultsFoundLbl.setText("No Results Found");
+        else
+            resultsFoundLbl.setText("Results Found: " + devicesFound.size());
+    }
+ 
+    /**
+     * Method to sort the sensor data by various user input parameters.
+     * @param user_selection The users selected sort option from the combobox.
+     */
+    private void sortData(String user_selection)
+    {
+		if (user_selection.equals(sorts[0]))
+			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
+
+    	else if (user_selection.equals(sorts[1]))
+    		Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
+
+    	else if (user_selection.equals(sorts[2]))
+			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getStatus().compareTo(data_1.getStatus()));
+
+    	else if (user_selection.equals(sorts[3]))
+			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getCounter().compareTo(data_1.getCounter()));
     }
 
     /**

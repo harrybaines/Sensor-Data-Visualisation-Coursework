@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 public class SensorData
 {
 	// Calendar/Date instance variables
-	private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
     private GregorianCalendar cal;
 
     // Data and file variables
@@ -47,7 +47,7 @@ public class SensorData
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
      */
-	public void findFile()
+	public boolean findFile()
 	{
 		// Clear linked list
 		while (!dataList.isEmpty())
@@ -69,7 +69,10 @@ public class SensorData
 
 			// Error checking
 			if (!extension.equals("csv")) 
+			{
 			    JOptionPane.showMessageDialog(new JFrame(), "Error - please choose a CSV file!", "Error", JOptionPane.ERROR_MESSAGE);	
+			    return false;
+			}
 			else
 			{
 				try 
@@ -90,16 +93,20 @@ public class SensorData
 				}
 				catch (FileNotFoundException e) 
 				{
-	            	e.printStackTrace();
+	            	return false;
 				}
 	       		catch (IOException e) 
 	       		{
-	            	e.printStackTrace();
+	            	return false;
 	       		}
 			}
         }
 		else 
+		{
 			System.out.println("No file chosen!");
+			return false;
+		}	
+		return true;
 	}
 
 	/**
@@ -142,13 +149,13 @@ public class SensorData
         {
         	nextData = listIt.next();
 
-        	System.out.println("Status: " + nextData.getStatus());
-
         	// Find an error
         	if (!(nextData.getStatus().equals("0") || (nextData.getStatus().equals("00"))))
         	{
         		errorsArray[0]++;
         	}
+
+        	System.out.println("ERRORS: " + errorsArray[0]);
 
         	// Find total number of different errors
         	//errorsArray[1]++;
@@ -173,6 +180,15 @@ public class SensorData
 	public int getNoOfRecords()
 	{
 		return dataList.size();
+	}
+
+	/**
+	 * Method to return a linked list of all the data lines present in the CSV input file for use in output table.
+	 * @return The linked list of data lines.
+	 */
+	public LinkedList<DataLine> getAllData()
+	{
+		return dataList;
 	}
 
 	/**
