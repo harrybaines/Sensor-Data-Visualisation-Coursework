@@ -4,7 +4,7 @@ import javax.swing.*;
 import java.util.*;
 
 /**
- * A class to model a simple scatter graph component.
+ * A class to model a simple line graph component.
  * The graph displays all provided sensor data points in a compact component and can be viewed inside a panel/frame.
  *
  * @author Harry Baines
@@ -16,6 +16,7 @@ public class ScatterGraphComponent extends JPanel
     private ListIterator<Integer> listIt;
     private LinkedList<String> datePoints = new LinkedList<String>();
     private ListIterator<String> listItDates;
+    private String title_details;
 
     // Graph variables
     private final int pad = 40;
@@ -51,16 +52,41 @@ public class ScatterGraphComponent extends JPanel
         scale = (double) (height - 2*pad) / 300;
 
         // Axis lines
-        g2.draw(new Line2D.Double(pad, pad, pad, height-pad));
-        g2.draw(new Line2D.Double(pad, height-pad, width-pad, height-pad));
-        g2.draw(new Line2D.Double(pad, pad, pad-5, pad+5));
-        g2.draw(new Line2D.Double(pad, pad, pad+5, pad+5));
+        g2.draw(new Line2D.Double(pad*2, pad, pad*2, height-pad));
+        g2.draw(new Line2D.Double(pad*2, height-pad, width-pad, height-pad));
+        g2.draw(new Line2D.Double(pad*2, pad, pad*2-5, pad+5));
+        g2.draw(new Line2D.Double(pad*2, pad, pad*2+5, pad+5));
         g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad-5));
         g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad+5));
 
+        // Title label
+		g2.setFont(new Font("Verdana", Font.PLAIN, 22)); 
+        g2.drawString(title_details, (width/2) - 200, 30);
+
         // Y axis labels
+        g2.setFont(new Font("Verdana", Font.PLAIN, 18)); 
         for (int i = 0; i < 7; i++)
-            g2.drawString(Integer.toString(i*50), pad/4, height - pad - (int)(i*scale*50));
+            g2.drawString(Integer.toString(i*50), pad, height - pad - (int)(i*scale*50));
+
+		// Y axis value label
+		g2.setFont(new Font("Verdana", Font.PLAIN, 16)); 
+		AffineTransform affineTransform = new AffineTransform();
+		affineTransform.rotate(Math.toRadians(-90), 0, 0);
+		g2.setFont(g2.getFont().deriveFont(affineTransform));
+		g2.drawString("Value", pad/2 + 5, height/2 + 20);
+
+		// Data points - iterate over all data points and mark data points with red ellipses
+        inc = 0;
+        g2.setPaint(Color.red);
+        listIt = sensorPoints.listIterator();
+        while (listIt.hasNext())
+        {
+            sensorPoint = listIt.next();
+            xPos = pad*2 + inc*xInc;
+            yPos = height - pad - scale*sensorPoint;
+            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
+            inc++;
+        }
 
         // X axis labels - iterate over all date data points and mark on X axis
         i = 0;
@@ -70,30 +96,22 @@ public class ScatterGraphComponent extends JPanel
         while (listItDates.hasNext())
         {
             datePoint = listItDates.next();
-            g2.drawString(datePoint, 50 + (i*170), getHeight() - 20);
+            g2.drawString(datePoint, pad-15 + (i*20), getHeight() - 20);
             i++;
-        }
-
-        // Data points - iterate over all data points and mark data points with red ellipses
-        inc = 0;
-        g2.setPaint(Color.red);
-        listIt = sensorPoints.listIterator();
-        while (listIt.hasNext())
-        {
-            sensorPoint = listIt.next();
-            xPos = pad + inc*xInc;
-            yPos = height - pad - scale*sensorPoint;
-            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
-            inc++;
         }
     }
 
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
+     *
+     * @param sensorPoints The linked list of sensor data points to plot over time. 
+     * @param datePoints The linked list of date strings to plot on the X axis.
+     * @param device_address The string address of the device for which data is being plotted.
      */
-    public ScatterGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints)
+    public ScatterGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
+        this.title_details = title_details;
     }
 }

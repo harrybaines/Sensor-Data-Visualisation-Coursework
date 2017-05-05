@@ -82,6 +82,12 @@ public class MainScreen extends JPanel implements ActionListener
     private String[] visuals = {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
+    private String[] datesOne = {"No Data Selected"};
+    private String[] datesTwo = {"No Data Selected"};
+    private JComboBox<String> dateOptsOne = new JComboBox<String>(datesOne);
+    private JComboBox<String> dateOptsTwo = new JComboBox<String>(datesTwo);
+    private String dateOneOpt;
+    private String dateTwoOpt;
 
     // Graph Dialog Visualisation Window Variables
     private JFrame graphWindow;
@@ -91,8 +97,6 @@ public class MainScreen extends JPanel implements ActionListener
     private String title_details;
     private int sensorValue;
     private String dateValue;
-    private int dateCounter;
-    private int datesAdded;
     private LinkedList<DataLine> flaggedDataLines = new LinkedList<DataLine>();
     private DataLine deviceToCheck;
     private JTabbedPane graphTabPane;
@@ -179,7 +183,7 @@ public class MainScreen extends JPanel implements ActionListener
 
         // Sensors panel - bottom
         botSortPanel = new JPanel(new GridLayout(4,1,10,10));
-        botVisPanel = new JPanel(new GridLayout(3,1,10,10));
+        botVisPanel = new JPanel(new GridLayout(7,1,10,10));
         botSensPanel.add("West", botSortPanel);
         botSensPanel.add("East", botVisPanel);
 
@@ -266,7 +270,7 @@ public class MainScreen extends JPanel implements ActionListener
         // Sensors panel - visualise panel
         visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
         visualiseAsLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         visualiseAsLbl.setForeground(Color.RED);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 30;
@@ -282,9 +286,23 @@ public class MainScreen extends JPanel implements ActionListener
 		c.gridx = 0;
 		c.gridy = 1;
 
-        botVisPanel.add(visualiseAsLbl, c);
-        botVisPanel.add(visOpts, c);
-        botVisPanel.add(applyVisBtn, c);
+		JLabel dateFromLbl = new JLabel("Choose Date Range:");
+		dateFromLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        dateFromLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        dateFromLbl.setForeground(Color.RED);
+
+        JLabel toLbl = new JLabel("TO");
+        toLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        toLbl.setFont(new Font("Helvetica", Font.BOLD, 13));
+        toLbl.setForeground(Color.BLACK);
+
+        botVisPanel.add(visualiseAsLbl);
+        botVisPanel.add(visOpts);
+        botVisPanel.add(dateFromLbl);
+        botVisPanel.add(dateOptsOne);
+        botVisPanel.add(toLbl);
+        botVisPanel.add(dateOptsTwo);
+        botVisPanel.add(applyVisBtn);
 
         // OPTIONS panels
         optionPanel = new JPanel(new BorderLayout());
@@ -358,11 +376,11 @@ public class MainScreen extends JPanel implements ActionListener
         // Search for device by address
         else if (e.getSource() == searchSensBut)
         {
-        	// Re-populate table with data from user input device address
+        	// Re-populate table with data from user input device address and populate date comboboxes
         	populateTableData();
         }
 
-        // Sort the data in the table
+        // Sort the data in the table and populate date comboboxes
         else if (e.getSource() == applySortBtn)
         {
 		    populateTableData();
@@ -371,8 +389,10 @@ public class MainScreen extends JPanel implements ActionListener
         // Visualise data as graphs
         else if (e.getSource() == applyVisBtn)
         {         
-            // Retrieve user input 
+            // Retrieve user input for graph option and date ranges
             selectedItem = visOpts.getSelectedItem().toString();
+            dateOneOpt = dateOptsOne.getSelectedItem().toString();
+            dateTwoOpt = dateOptsTwo.getSelectedItem().toString();
 
             // Ensure data is in ordered ascending form
             data.sortData(sorts[1], devicesFound, sorts);
@@ -430,29 +450,31 @@ public class MainScreen extends JPanel implements ActionListener
             // Retrieve sensor name and create new panel
             sensorString = "Sensor " + i;
             graphPanels[i-1] = new JPanel(new BorderLayout());
-            dateCounter = 0;
-            datesAdded = 0;
 
             // Iterate over devices found and extract individual sensor values into linked list
             listIt = devicesFound.listIterator();
             sensorPoints = new LinkedList<Integer>();
             datePoints = new LinkedList<String>();
 
+	        int deviceCounter = 0;
+	        int increment = (int) (devicesFound.size()/8);
+	        int runningIncrement = increment;
+
+            // Add occasional date - used to display on graph component
             while (listIt.hasNext())
             {
-                deviceToCheck = listIt.next();
-                sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
-                sensorPoints.add(sensorValue);
-                dateCounter++;
+            	deviceToCheck = listIt.next();
+            	deviceCounter++;
 
-                // Add occasional date - used to display on graph component
-                if ((dateCounter == (int)(devicesFound.size()/8)) && (datesAdded < 8))
-                {
-                    dateValue = deviceToCheck.getDateObtained();
+            	if (deviceCounter == runningIncrement || deviceCounter == 1)
+	        	{
+	        		runningIncrement += increment;
+
+	        		sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+                	sensorPoints.add(sensorValue);
+                	dateValue = deviceToCheck.getDateObtained();
                     datePoints.add(dateValue);
-                    datesAdded++;
-                    dateCounter = 0;
-                }
+	        	}
             }
 
             // Prepare title string for graph plotting
@@ -460,7 +482,7 @@ public class MainScreen extends JPanel implements ActionListener
 
             // Add new graph type component to new panel
             if (visOpts.getSelectedItem().equals("Scatter Graph"))
-                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints));
+                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints, title_details));
 
             else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
                 graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints, title_details));
@@ -507,7 +529,7 @@ public class MainScreen extends JPanel implements ActionListener
 
         while (listIt.hasNext())
         {
-            // Obtain next device properties
+    		// Obtain next device properties
             deviceToAdd = listIt.next();
 
             // Store properties from data line
@@ -526,8 +548,12 @@ public class MainScreen extends JPanel implements ActionListener
                 
             // Add row to table
             tableModel.addRow(dataToAdd);
-        }
 
+            // Add dates to comboxes
+            dateOptsOne.addItem(deviceToAdd.getDateObtained());
+            dateOptsTwo.addItem(deviceToAdd.getDateObtained());
+    	}
+   
         // Results found data
         if (devicesFound.size() == 0)
             resultsFoundLbl.setText("No Results Found");
