@@ -88,6 +88,7 @@ public class MainScreen extends JPanel implements ActionListener
     private JPanel graphPanel;
     private LinkedList<Integer> sensorPoints;
     private LinkedList<String> datePoints;
+    private String title_details;
     private int sensorValue;
     private String dateValue;
     private int dateCounter;
@@ -344,7 +345,7 @@ public class MainScreen extends JPanel implements ActionListener
             selectedItem = visOpts.getSelectedItem().toString();
 
             // Ensure data is in ordered ascending form
-            sortData(sorts[0]);
+            data.sortData(sorts[1], devicesFound, sorts);
 
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a sensor first.", "Error", JOptionPane.ERROR_MESSAGE);   
@@ -424,12 +425,15 @@ public class MainScreen extends JPanel implements ActionListener
                 }
             }
 
+            // Prepare title string for graph plotting
+            title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
+
             // Add new graph type component to new panel
             if (visOpts.getSelectedItem().equals("Scatter Graph"))
                 graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints));
 
             else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints));
+                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints, title_details));
 
             // Add new panel to tab pane 
             graphTabPane.add(sensorString, graphPanels[i-1]);
@@ -446,7 +450,7 @@ public class MainScreen extends JPanel implements ActionListener
 
         // Further graph window details
         graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        graphWindow.setSize(1400,700);
+        graphWindow.setSize(1600,700);
         graphWindow.setLocation(200,200);
         graphWindow.setVisible(true);
         graphWindow.setResizable(false); 
@@ -466,7 +470,7 @@ public class MainScreen extends JPanel implements ActionListener
         devicesFound = data.findDeviceByAddress(addressEntry.getText());
 
         // Sort the data in the table from user input
-        sortData(sortOpts.getSelectedItem().toString());
+        data.sortData(sortOpts.getSelectedItem().toString(), devicesFound, sorts);
 
         // Iterate over linked list and add to output
         listIt = devicesFound.listIterator();
@@ -499,25 +503,6 @@ public class MainScreen extends JPanel implements ActionListener
             resultsFoundLbl.setText("No Results Found");
         else
             resultsFoundLbl.setText("Results Found: " + devicesFound.size());
-    }
- 
-    /**
-     * Method to sort the sensor data by various user input parameters.
-     * @param user_selection The users selected sort option from the combobox.
-     */
-    private void sortData(String user_selection)
-    {
-		if (user_selection.equals(sorts[0]))
-			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
-
-    	else if (user_selection.equals(sorts[1]))
-    		Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
-
-    	else if (user_selection.equals(sorts[2]))
-			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getStatus().compareTo(data_1.getStatus()));
-
-    	else if (user_selection.equals(sorts[3]))
-			Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getCounter().compareTo(data_1.getCounter()));
     }
 
     /**

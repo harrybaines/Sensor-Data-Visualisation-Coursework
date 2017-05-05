@@ -155,14 +155,32 @@ public class SensorData
         		errorsArray[0]++;
         	}
 
-        	System.out.println("ERRORS: " + errorsArray[0]);
-
         	// Find total number of different errors
         	//errorsArray[1]++;
         	
         }
 		return errorsArray;
 	}
+
+	/**
+     * Method to sort the sensor data by various user input parameters.
+     * @param user_selection The users selected sort option from the combobox.
+     * @param list The linked list to sort.
+     */
+    public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts)
+    {
+		if (user_selection.equals(sorts[0]))
+			Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
+
+    	else if (user_selection.equals(sorts[1]))
+    		Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
+
+    	else if (user_selection.equals(sorts[2]))
+			Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_2.getStatus().compareTo(data_1.getStatus()));
+
+    	else if (user_selection.equals(sorts[3]))
+			Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_2.getCounter().compareTo(data_1.getCounter()));
+    }
 
 	/**
 	 * Returns the name of the file opened.
