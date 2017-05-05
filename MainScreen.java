@@ -73,13 +73,13 @@ public class MainScreen extends JPanel implements ActionListener
 
     // Sort panel components
     private JLabel sortLbl;
-    private String[] sorts = new String[] {"Time since last seen (DESC)", "Time since last seen (ASC)", "Number of errors found", "Messages missed by receiver"};
+    private String[] sorts = {"Time since last seen (DESC)", "Time since last seen (ASC)", "Number of errors found", "Messages missed by receiver"};
     private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
     private JButton applySortBtn;
 
     // Visualise panel components
     private JLabel visualiseAsLbl;
-    private String[] visuals = new String[] {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
+    private String[] visuals = {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
 
@@ -159,32 +159,27 @@ public class MainScreen extends JPanel implements ActionListener
        	// Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
         openFileBtn.addActionListener(this);
-
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.ipady = 40;
+		c.ipady = 20;
 		c.weightx = 0.0;
 		c.gridwidth = 1;
 		c.gridx = 0;
-		c.gridy = 1;
-		c.insets = new Insets(10,10,10,10);
+		c.insets= new Insets(10,10,10,10);
 		botHomePanel.add(openFileBtn, c);
 
         exportBtn = new JButton("Save Graph To File");
         exportBtn.addActionListener(this);
-
         c.gridx = 1;
         botHomePanel.add(exportBtn, c);
 
         // SENSORS panels
         sensorPanel = new JPanel(new BorderLayout());
-        topSensPanel = new JPanel();
-        midSensPanel = new JPanel(new GridLayout(2,1));
+        topSensPanel = new JPanel(new GridBagLayout());
+        midSensPanel = new JPanel(new BorderLayout());
         botSensPanel = new JPanel(new BorderLayout());
 
         // Sensors panel - bottom
-        botSortPanel = new JPanel(new GridLayout(4,4));
-        botVisPanel = new JPanel(new GridLayout(4,4));
-
+        botSortPanel = new JPanel(new GridLayout(4,1,10,10));
+        botVisPanel = new JPanel(new GridLayout(3,1,10,10));
         botSensPanel.add("West", botSortPanel);
         botSensPanel.add("East", botVisPanel);
 
@@ -198,22 +193,45 @@ public class MainScreen extends JPanel implements ActionListener
         addressLbl.setHorizontalAlignment(SwingConstants.CENTER);
         addressLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
         addressLbl.setForeground(Color.RED);
-        topSensPanel.add(addressLbl);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.weightx = 0.5;
+        c.gridx = 0;
+        c.gridy = 0;
+		c.insets= new Insets(10,0,10,0);
+        topSensPanel.add(addressLbl, c);
 
         addressEntry = new JTextField(20);
         addressEntry.addActionListener(this);
-        topSensPanel.add(addressEntry);
+        addressEntry.setHorizontalAlignment(SwingConstants.CENTER);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.weightx = 0.5;
+        c.ipady = 5;
+        c.gridx = 0;
+        c.gridy = 1;
+		c.insets = new Insets(10,250,10,250);
+        topSensPanel.add(addressEntry, c);
 
         searchSensBut = new JButton("Find");
         searchSensBut.addActionListener(this);
-        topSensPanel.add(searchSensBut);
+        searchSensBut.setHorizontalAlignment(SwingConstants.CENTER);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 2;
+        topSensPanel.add(searchSensBut, c);
 
-        resultsFoundLbl = new JLabel("No Results Found");
-        topSensPanel.add(resultsFoundLbl);
+		resultsFoundLbl = new JLabel("No Results Found");
+		resultsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 16));
+		resultsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0;
+		c.gridx = 0;
+		c.gridy = 3;
+		c.gridwidth = 1;
+        topSensPanel.add(resultsFoundLbl, c);
 
         // Sensors panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
-
         table = new JTable(tableModel) 
         {
             public boolean isCellEditable(int row, int column) 
@@ -221,8 +239,8 @@ public class MainScreen extends JPanel implements ActionListener
                 return false;
             }
         };
-        table.setFillsViewportHeight(true);
-        table.setRowHeight(30);
+        //table.setFillsViewportHeight(true);
+        table.setRowHeight(20);
 
         // Set the column widths in the table
         columnModel = table.getColumnModel();
@@ -232,11 +250,12 @@ public class MainScreen extends JPanel implements ActionListener
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
 
-        // Sensors panel - sort panel
+        // Sensors panel - sort section
         sortLbl = new JLabel("Sort Sensors By:");
         sortLbl.setHorizontalAlignment(SwingConstants.CENTER);
         sortLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         sortLbl.setForeground(Color.RED);
+
         applySortBtn = new JButton("Apply");
         applySortBtn.addActionListener(this);
 
@@ -249,12 +268,23 @@ public class MainScreen extends JPanel implements ActionListener
         visualiseAsLbl.setHorizontalAlignment(SwingConstants.CENTER);
         visualiseAsLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         visualiseAsLbl.setForeground(Color.RED);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 30;
+		c.weightx = 0;
+		c.gridx = 0;
+		c.gridy = 0;
+
         applyVisBtn = new JButton("Apply");
         applyVisBtn.addActionListener(this);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 30;
+		c.weightx = 0;
+		c.gridx = 0;
+		c.gridy = 1;
 
-        botVisPanel.add(visualiseAsLbl);
-        botVisPanel.add(visOpts);
-        botVisPanel.add(applyVisBtn);
+        botVisPanel.add(visualiseAsLbl, c);
+        botVisPanel.add(visOpts, c);
+        botVisPanel.add(applyVisBtn, c);
 
         // OPTIONS panels
         optionPanel = new JPanel(new BorderLayout());
@@ -280,7 +310,7 @@ public class MainScreen extends JPanel implements ActionListener
     }
 
     /**
-     * A method to display the UI to the user using the event-dispatching thread.
+     * A method to display the UI to the user thorugh the event-dispatching thread.
      */
     public void displayScreen() 
     {
