@@ -29,7 +29,8 @@ public class ScatterGraphComponent extends JPanel
     private int sensorPoint;
     private String datePoint;
     private int inc;
-    private int i = 0;
+    private double initXPos;
+    private double initYPos;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -46,7 +47,7 @@ public class ScatterGraphComponent extends JPanel
         height = getHeight();
 
         // Space between each point
-        xInc = (double) (width - 2*pad) / (sensorPoints.size() - 1);
+        xInc = (double) (width - 4*pad) / (sensorPoints.size() - 1);
 
         // Scale: padding - maximum point value
         scale = (double) (height - 2*pad) / 300;
@@ -75,29 +76,45 @@ public class ScatterGraphComponent extends JPanel
 		g2.setFont(g2.getFont().deriveFont(affineTransform));
 		g2.drawString("Value", pad/2 + 5, height/2 + 20);
 
+		initXPos = 0;
+		initYPos = 0;
+
 		// Data points - iterate over all data points and mark data points with red ellipses
         inc = 0;
         g2.setPaint(Color.red);
         listIt = sensorPoints.listIterator();
+        int drawCount = 0;
         while (listIt.hasNext())
         {
             sensorPoint = listIt.next();
+
             xPos = pad*2 + inc*xInc;
             yPos = height - pad - scale*sensorPoint;
-            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,1.5,1.5));
+
+            if (inc != 0)
+            {
+            	drawCount++;
+        		g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
+        		System.out.println(drawCount);
+            }
+            
+			initXPos = xPos;
+            initYPos = yPos;
+
+            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,3,3));
             inc++;
         }
 
         // X axis labels - iterate over all date data points and mark on X axis
-        i = 0;
+        inc = 0;
         g2.setPaint(Color.BLACK);
         g2.setFont(new Font("default", Font.BOLD, 11));
         listItDates = datePoints.listIterator();
         while (listItDates.hasNext())
         {
             datePoint = listItDates.next();
-            g2.drawString(datePoint, pad-15 + (i*20), getHeight() - 20);
-            i++;
+            g2.drawString(datePoint, (int) ((pad-20) + (inc*xInc*2)), getHeight() - 20);
+            inc++;
         }
     }
 

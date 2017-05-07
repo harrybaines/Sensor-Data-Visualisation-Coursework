@@ -12,7 +12,7 @@ import java.util.*;
 public class BarGraphComponent extends JPanel 
 {
     private int[] values;
-    private final String[] xAxisNames = {"Records Found", "Errors Found", "Different Errors Found", "Different Receivers Found"};
+    private final String[] xAxisNames = {"Records Found", "Errors Found", "Different Errors Found", "Different Receivers Found", "Unique Data Lines Found"};
     private String title;
 
     public BarGraphComponent(int[] v, String t) {

@@ -4,12 +4,12 @@ import javax.swing.*;
 import java.util.*;
 
 /**
- * A class to model a simple line graph component.
+ * A class to model a simple line graph component with dashed helper guidelines.
  * The graph displays all provided sensor data points in a compact component and can be viewed inside a panel/frame.
  *
  * @author Harry Baines
  */
-public class LineGraphComponent extends JPanel
+public class LineGraphDashedComponent extends JPanel
 {
     // Linked list to store sensor data and iterator to iterate over the linked list
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
@@ -31,7 +31,6 @@ public class LineGraphComponent extends JPanel
     private int inc;
     private double initXPos;
     private double initYPos;
-    private double dateInc;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -49,11 +48,6 @@ public class LineGraphComponent extends JPanel
 
         // Space between each point
         xInc = (double) (width - 4*pad) / (sensorPoints.size() - 1);
-
-        // Space between each date
-        dateInc = 140;
-
-        System.out.println("DATEPOINTS SIZE: " + datePoints.size());
 
         // Scale: padding - maximum point value
         scale = (double) (height - 2*pad) / 300;
@@ -98,12 +92,16 @@ public class LineGraphComponent extends JPanel
             yPos = height - pad - scale*sensorPoint;
 
             if (inc != 0)
+            {
         		g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
+        		drawDashedLine(g2, initXPos, initYPos, initXPos, height-pad);
+            }
             
 			initXPos = xPos;
             initYPos = yPos;
 
             g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,3,3));
+        	drawDashedLine(g2, initXPos, initYPos, initXPos, height-pad);
             inc++;
         }
 
@@ -115,10 +113,25 @@ public class LineGraphComponent extends JPanel
         while (listItDates.hasNext())
         {
             datePoint = listItDates.next();
-            g2.drawString(datePoint, (int) ((pad-20) + (inc*dateInc*2)), getHeight() - 20);
+            g2.drawString(datePoint, (int) ((pad-15) + (inc*xInc*2)), getHeight() - 20);
             inc++;
         }
     }
+
+    public void drawDashedLine(Graphics g, double x1, double y1, double x2, double y2){
+
+        //creates a copy of the Graphics instance
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setPaint(Color.BLACK);
+
+        //set the stroke of the copy, not the original 
+        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+        g2d.setStroke(dashed);
+        g2d.draw(new Line2D.Double(x1, y1, x2, y2));
+
+        //gets rid of the copy
+        g2d.dispose();
+	}
 
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
@@ -127,7 +140,7 @@ public class LineGraphComponent extends JPanel
      * @param datePoints The linked list of date strings to plot on the X axis.
      * @param device_address The string address of the device for which data is being plotted.
      */
-    public LineGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details)
+    public LineGraphDashedComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;

@@ -79,15 +79,12 @@ public class MainScreen extends JPanel implements ActionListener
 
     // Visualise panel components
     private JLabel visualiseAsLbl;
-    private String[] visuals = {"Timeline", "Sensor-Value-Over-Time Line Graph", "Bar Chart", "Scatter Graph"};
+    private String[] visuals = {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Timeline"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
-    private String[] datesOne = {"No Data Selected"};
-    private String[] datesTwo = {"No Data Selected"};
-    private JComboBox<String> dateOptsOne = new JComboBox<String>(datesOne);
-    private JComboBox<String> dateOptsTwo = new JComboBox<String>(datesTwo);
-    private String dateOneOpt;
-    private String dateTwoOpt;
+    private String[] plots = {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
+    private JComboBox<String> plotOpts = new JComboBox<String>(plots);
+    private int[][] frequencyPlotValues = {{0,0}, {100,20}, {50,10}, {10,2}};
 
     // Graph Dialog Visualisation Window Variables
     private JFrame graphWindow;
@@ -286,22 +283,15 @@ public class MainScreen extends JPanel implements ActionListener
 		c.gridx = 0;
 		c.gridy = 1;
 
-		JLabel dateFromLbl = new JLabel("Choose Date Range:");
-		dateFromLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        dateFromLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
-        dateFromLbl.setForeground(Color.RED);
-
-        JLabel toLbl = new JLabel("TO");
-        toLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        toLbl.setFont(new Font("Helvetica", Font.BOLD, 13));
-        toLbl.setForeground(Color.BLACK);
+		JLabel plotOptLbl = new JLabel("Choose Graph Detail:");
+		plotOptLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        plotOptLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        plotOptLbl.setForeground(Color.RED);
 
         botVisPanel.add(visualiseAsLbl);
         botVisPanel.add(visOpts);
-        botVisPanel.add(dateFromLbl);
-        botVisPanel.add(dateOptsOne);
-        botVisPanel.add(toLbl);
-        botVisPanel.add(dateOptsTwo);
+        botVisPanel.add(plotOptLbl);
+        botVisPanel.add(plotOpts);
         botVisPanel.add(applyVisBtn);
 
         // OPTIONS panels
@@ -391,28 +381,23 @@ public class MainScreen extends JPanel implements ActionListener
         {         
             // Retrieve user input for graph option and date ranges
             selectedItem = visOpts.getSelectedItem().toString();
-            dateOneOpt = dateOptsOne.getSelectedItem().toString();
-            dateTwoOpt = dateOptsTwo.getSelectedItem().toString();
 
             // Ensure data is in ordered ascending form
             data.sortData(sorts[1], devicesFound, sorts);
 
             if (devicesFound.size() == 0)
-                JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a sensor first.", "Error", JOptionPane.ERROR_MESSAGE);   
+                JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
             else
             {
-                if (selectedItem.equals("Scatter Graph") || selectedItem.equals("Sensor-Value-Over-Time Line Graph"))
+                // Schedule a job for the event-dispatching thread: creating + showing the graph UI.
+                SwingUtilities.invokeLater(new Runnable() 
                 {
-                    // Schedule a job for the event-dispatching thread: creating + showing the graph UI.
-                    SwingUtilities.invokeLater(new Runnable() 
+                    @Override
+                    public void run() 
                     {
-                        @Override
-                        public void run() 
-                        {
-                            displayGraphs();
-                        }
-                    }); 
-                } 
+                        displayGraphs();
+                    }
+                }); 
             } 
         }
 
@@ -444,6 +429,17 @@ public class MainScreen extends JPanel implements ActionListener
 
         sensInc = 1;
 
+        // Used to obtain index in frequency array - then will be used to access int values for plot
+        frequencyPlotValues[0][0] = devicesFound.size();
+        frequencyPlotValues[0][1] = devicesFound.size()/5;
+		int index = -1;
+		for (int i=0;i<plots.length;i++) {
+		    if (plots[i].equals(plotOpts.getSelectedItem())) {
+		        index = i;
+		        break;
+		    }
+		}
+
         // Plot all data graphs for all sensors
         for (int i = 1; i <= 10; i++)
         {
@@ -457,35 +453,56 @@ public class MainScreen extends JPanel implements ActionListener
             datePoints = new LinkedList<String>();
 
 	        int deviceCounter = 0;
-	        int increment = (int) (devicesFound.size()/8);
-	        int runningIncrement = increment;
+	        double increment = (devicesFound.size()/frequencyPlotValues[index][0]);
+	        double runningIncrement = 0;
+	        int dateInc = 1;
 
-            // Add occasional date - used to display on graph component
+            // Add occasional date between data points - used to display on graph component CHANGE 20 TO DIFFERENT VALUES!
             while (listIt.hasNext())
             {
             	deviceToCheck = listIt.next();
-            	deviceCounter++;
 
-            	if (deviceCounter == runningIncrement || deviceCounter == 1)
-	        	{
+            	if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0])
+	        	{ 
 	        		runningIncrement += increment;
 
-	        		sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+        			sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
                 	sensorPoints.add(sensorValue);
-                	dateValue = deviceToCheck.getDateObtained();
-                    datePoints.add(dateValue);
+                	dateInc++;
+
+                	// For every X data plots, write date string on X axis
+                	if (dateInc == frequencyPlotValues[index][1])
+                	{
+                		dateValue = deviceToCheck.getDateObtained();
+                    	datePoints.add(dateValue);
+                    	dateInc = 0;
+                	}
 	        	}
+
+	        	deviceCounter++;
             }
+
+            // Add final sensor and date point values after while loop has finished
+            sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+            sensorPoints.add(sensorValue);
+ 			dateValue = deviceToCheck.getDateObtained();
+ 			datePoints.add(dateValue);
 
             // Prepare title string for graph plotting
             title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
 
             // Add new graph type component to new panel
-            if (visOpts.getSelectedItem().equals("Scatter Graph"))
+            if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints, title_details));
+
+            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
+                graphPanels[i-1].add("Center", new LineGraphDashedComponent(sensorPoints, datePoints, title_details));
+
+            else if (visOpts.getSelectedItem().equals("Scatter Graph"))
                 graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints, title_details));
 
-            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints, title_details));
+            else if (visOpts.getSelectedItem().equals("Timeline"))
+                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints, title_details));
 
             // Add new panel to tab pane 
             graphTabPane.add(sensorString, graphPanels[i-1]);
@@ -548,10 +565,6 @@ public class MainScreen extends JPanel implements ActionListener
                 
             // Add row to table
             tableModel.addRow(dataToAdd);
-
-            // Add dates to comboxes
-            dateOptsOne.addItem(deviceToAdd.getDateObtained());
-            dateOptsTwo.addItem(deviceToAdd.getDateObtained());
     	}
    
         // Results found data
