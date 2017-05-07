@@ -9,7 +9,7 @@ import java.util.*;
  *
  * @author Harry Baines
  */
-public class LineGraphComponent extends JPanel
+public class GraphComponent extends JPanel
 {
     // Linked list to store sensor data and iterator to iterate over the linked list
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
@@ -32,6 +32,8 @@ public class LineGraphComponent extends JPanel
     private double initXPos;
     private double initYPos;
     private double dateInc;
+    private boolean dashed;
+    private boolean scatter;
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -53,8 +55,6 @@ public class LineGraphComponent extends JPanel
         // Space between each date
         dateInc = 140;
 
-        System.out.println("DATEPOINTS SIZE: " + datePoints.size());
-
         // Scale: padding - maximum point value
         scale = (double) (height - 2*pad) / 300;
 
@@ -70,10 +70,19 @@ public class LineGraphComponent extends JPanel
 		g2.setFont(new Font("Verdana", Font.PLAIN, 22)); 
         g2.drawString(title_details, (width/2) - 200, 30);
 
-        // Y axis labels
+        // Y axis labels and dashed lines (if applicable)
         g2.setFont(new Font("Verdana", Font.PLAIN, 18)); 
         for (int i = 0; i < 7; i++)
-            g2.drawString(Integer.toString(i*50), pad, height - pad - (int)(i*scale*50));
+        {
+            g2.drawString(Integer.toString(i*50), pad, (height - pad - (int)(i*scale*50)) + 5);
+
+            // Draw dashed lines on graph if selected
+            if (dashed)
+            {
+            	drawDashedLine(g2, 2*pad, (height - pad - (int)(i*scale*50)), width - 2*pad, height - pad - (int)(i*scale*50));
+                drawDashedLine(g2, (int) (2*pad) + (i*dateInc*2), getHeight() - pad, (int) (2*pad) + (i*dateInc*2), pad);
+            }
+        }
 
 		// Y axis value label
 		g2.setFont(new Font("Verdana", Font.PLAIN, 16)); 
@@ -97,13 +106,18 @@ public class LineGraphComponent extends JPanel
             xPos = pad*2 + inc*xInc;
             yPos = height - pad - scale*sensorPoint;
 
-            if (inc != 0)
-        		g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
-            
+            if (scatter)
+            {
+            	g2.setPaint(Color.BLACK);
+            	g2.setFont(new Font("Verdana", Font.PLAIN, 7));
+            	g2.drawString("x", (int) (xPos-2), (int) (yPos-2));
+            }
+            else
+            	if (inc != 0)
+        			g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
+
 			initXPos = xPos;
             initYPos = yPos;
-
-            g2.fill(new Ellipse2D.Double(xPos-2,yPos-2,3,3));
             inc++;
         }
 
@@ -120,6 +134,21 @@ public class LineGraphComponent extends JPanel
         }
     }
 
+    public void drawDashedLine(Graphics g, double x1, double y1, double x2, double y2)
+    {
+        //creates a copy of the Graphics instance
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setPaint(Color.BLACK);
+
+        //set the stroke of the copy, not the original 
+        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+        g2d.setStroke(dashed);
+        g2d.draw(new Line2D.Double(x1, y1, x2, y2));
+
+        //gets rid of the copy
+        g2d.dispose();
+	}
+
     /**
      * Constructor to initialise sensor data with relevant data for that particular sensor.
      *
@@ -127,10 +156,12 @@ public class LineGraphComponent extends JPanel
      * @param datePoints The linked list of date strings to plot on the X axis.
      * @param device_address The string address of the device for which data is being plotted.
      */
-    public LineGraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details)
+    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details, boolean dashed, boolean scatter)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
         this.title_details = title_details;
+        this.dashed = dashed;
+        this.scatter = scatter;
     }
 }

@@ -61,8 +61,8 @@ public class MainScreen extends JPanel implements ActionListener
     private String selectedItem;
 
     // Table variables
-    private final String[] columnNames = {"Time (s)", "Type", "Version", "Counter", "Via", "Address", "Status", "Sensor Data", "Date Obtained"};
-    private final int[] columnWidths = {60,20,20,20,10,60,20,150,170};
+    private final String[] columnNames = {"Date Obtained", "Device Type", "Version", "Counter", "Via", "Device Address", "Status", "Sensor Data"};
+    private final int[] columnWidths = {150,40,20,60,10,60,20,170};
     private LinkedList<Object> tableData = new LinkedList<Object>();
     private JTable table;
     private TableColumnModel columnModel;
@@ -84,7 +84,7 @@ public class MainScreen extends JPanel implements ActionListener
     private JButton applyVisBtn;
     private String[] plots = {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
     private JComboBox<String> plotOpts = new JComboBox<String>(plots);
-    private int[][] frequencyPlotValues = {{0,0}, {100,20}, {50,10}, {10,2}};
+    private int[][] frequencyPlotValues = {{0,0}, {250,50}, {100,20}, {50,10}};
 
     // Graph Dialog Visualisation Window Variables
     private JFrame graphWindow;
@@ -427,102 +427,108 @@ public class MainScreen extends JPanel implements ActionListener
         graphWindow.setLayout(new BorderLayout());
         graphWindow.add(graphTabPane, BorderLayout.CENTER);
 
-        sensInc = 1;
+        // Check if devices found has fewer than 6 dates, if so use all dates to fill up space
+    	if (devicesFound.size() < 6)
+    		JOptionPane.showMessageDialog(new JFrame(), "Insufficient data to plot. 6 or more devices are required to plot the graphs.", "Error", JOptionPane.ERROR_MESSAGE);   
+    	else
+    	{
+	        sensInc = 1;
 
-        // Used to obtain index in frequency array - then will be used to access int values for plot
-        frequencyPlotValues[0][0] = devicesFound.size();
-        frequencyPlotValues[0][1] = devicesFound.size()/5;
-		int index = -1;
-		for (int i=0;i<plots.length;i++) {
-		    if (plots[i].equals(plotOpts.getSelectedItem())) {
-		        index = i;
-		        break;
-		    }
-		}
+	        // Used to obtain index in frequency array - then will be used to access int values for plot
+	        frequencyPlotValues[0][0] = devicesFound.size();
+	        frequencyPlotValues[0][1] = devicesFound.size()/5;
+			int index = -1;
+			for (int i=0;i<plots.length;i++) {
+			    if (plots[i].equals(plotOpts.getSelectedItem())) {
+			        index = i;
+			        break;
+			    }
+			}
 
-        // Plot all data graphs for all sensors
-        for (int i = 1; i <= 10; i++)
-        {
-            // Retrieve sensor name and create new panel
-            sensorString = "Sensor " + i;
-            graphPanels[i-1] = new JPanel(new BorderLayout());
+	        // Plot all data graphs for all sensors
+	        for (int i = 1; i <= 10; i++)
+	        {
+	            // Retrieve sensor name and create new panel
+	            sensorString = "Sensor " + i;
+	            graphPanels[i-1] = new JPanel(new BorderLayout());
 
-            // Iterate over devices found and extract individual sensor values into linked list
-            listIt = devicesFound.listIterator();
-            sensorPoints = new LinkedList<Integer>();
-            datePoints = new LinkedList<String>();
+	            // Iterate over devices found and extract individual sensor values into linked list
+	            listIt = devicesFound.listIterator();
+	            sensorPoints = new LinkedList<Integer>();
+	            datePoints = new LinkedList<String>();
 
-	        int deviceCounter = 0;
-	        double increment = (devicesFound.size()/frequencyPlotValues[index][0]);
-	        double runningIncrement = 0;
-	        int dateInc = 1;
+		        int deviceCounter = 0;
+		        double increment = (devicesFound.size()/frequencyPlotValues[index][0]);
+		        double runningIncrement = 0;
+		        int dateInc = frequencyPlotValues[index][1] - 1;
 
-            // Add occasional date between data points - used to display on graph component CHANGE 20 TO DIFFERENT VALUES!
-            while (listIt.hasNext())
-            {
-            	deviceToCheck = listIt.next();
+	            // Add occasional date between data points - used to display on graph component
+	            while (listIt.hasNext())
+	            {
+	            	deviceToCheck = listIt.next();
+ 
+	            	if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0])
+		        	{ 
+		        		runningIncrement += increment;
 
-            	if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0])
-	        	{ 
-	        		runningIncrement += increment;
+	        			sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+	                	sensorPoints.add(sensorValue);
+	                	dateInc++;
 
-        			sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
-                	sensorPoints.add(sensorValue);
-                	dateInc++;
+	                	// For every X data plots, write date string on X axis
+	                	if (dateInc == frequencyPlotValues[index][1])
+	                	{
+	                		dateValue = deviceToCheck.getDateObtained();
+	                    	datePoints.add(dateValue);
+	                    	dateInc = 0;
+	                	}
+		        	}
 
-                	// For every X data plots, write date string on X axis
-                	if (dateInc == frequencyPlotValues[index][1])
-                	{
-                		dateValue = deviceToCheck.getDateObtained();
-                    	datePoints.add(dateValue);
-                    	dateInc = 0;
-                	}
-	        	}
+		        	deviceCounter++;
+	            }
 
-	        	deviceCounter++;
-            }
+	            // Add final sensor and date point values after while loop has finished
+	            sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
+	            sensorPoints.add(sensorValue);
+	 			dateValue = deviceToCheck.getDateObtained();
+	 			datePoints.add(dateValue);
 
-            // Add final sensor and date point values after while loop has finished
-            sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
-            sensorPoints.add(sensorValue);
- 			dateValue = deviceToCheck.getDateObtained();
- 			datePoints.add(dateValue);
+	            // Prepare title string for graph plotting
+	            title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
 
-            // Prepare title string for graph plotting
-            title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
+	            // Add new graph type component to new panel
+	            if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+	                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, title_details, false, false));
 
-            // Add new graph type component to new panel
-            if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-                graphPanels[i-1].add("Center", new LineGraphComponent(sensorPoints, datePoints, title_details));
+	            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
+	                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, title_details, true, false));
 
-            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
-                graphPanels[i-1].add("Center", new LineGraphDashedComponent(sensorPoints, datePoints, title_details));
+	            else if (visOpts.getSelectedItem().equals("Scatter Graph"))
+	                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, title_details, false, true));
 
-            else if (visOpts.getSelectedItem().equals("Scatter Graph"))
-                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints, title_details));
+	            else if (visOpts.getSelectedItem().equals("Timeline"))
+	                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, title_details, false, true));
 
-            else if (visOpts.getSelectedItem().equals("Timeline"))
-                graphPanels[i-1].add("Center", new ScatterGraphComponent(sensorPoints, datePoints, title_details));
+	            // Add new panel to tab pane 
+	            graphTabPane.add(sensorString, graphPanels[i-1]);
+	            graphWindow.add(graphTabPane);
 
-            // Add new panel to tab pane 
-            graphTabPane.add(sensorString, graphPanels[i-1]);
-            graphWindow.add(graphTabPane);
+	            // Add new export button to each panel
+	            exportBtns[i-1] = new JButton("Save To File");
+	            exportBtns[i-1].addActionListener(this);
+	            graphPanels[i-1].add("South", exportBtns[i-1]);
 
-            // Add new export button to each panel
-            exportBtns[i-1] = new JButton("Save To File");
-            exportBtns[i-1].addActionListener(this);
-            graphPanels[i-1].add("South", exportBtns[i-1]);
+	            // Increase sensor value to extract particular points from data string
+	            sensInc += 2;
+	        }
 
-            // Increase sensor value to extract particular points from data string
-            sensInc += 2;
-        }
-
-        // Further graph window details
-        graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        graphWindow.setSize(1600,700);
-        graphWindow.setLocation(200,200);
-        graphWindow.setVisible(true);
-        graphWindow.setResizable(false); 
+	        // Further graph window details
+	        graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+	        graphWindow.setSize(1600,700);
+	        graphWindow.setLocation(200,200);
+	        graphWindow.setVisible(true);
+	        graphWindow.setResizable(false); 
+	    }
     }
 
     /**
@@ -552,15 +558,14 @@ public class MainScreen extends JPanel implements ActionListener
             // Store properties from data line
             Object[] dataToAdd = 
             {
-                deviceToAdd.getTime(), 
+            	deviceToAdd.getDateObtained(),
                 deviceToAdd.getType(), 
                 deviceToAdd.getVersion(), 
-                deviceToAdd.getCounter(), 
+                Integer.parseInt(deviceToAdd.getCounter(), 16),
                 deviceToAdd.getVia(),
                 deviceToAdd.getAddress(), 
                 deviceToAdd.getStatus(), 
                 deviceToAdd.getSensorData(), 
-                deviceToAdd.getDateObtained()
             };
                 
             // Add row to table
@@ -590,9 +595,9 @@ public class MainScreen extends JPanel implements ActionListener
             ImageIO.write(img, "png", new File(selectDest.getSelectedFile().getPath() + ".png"));
             JOptionPane.showMessageDialog(new JFrame(), "Graph saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
         } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+            JOptionPane.showMessageDialog(new JFrame(), "No File Selected", "Info", JOptionPane.PLAIN_MESSAGE);   
+    	}
+    }	
 }
 
 

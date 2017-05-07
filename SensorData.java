@@ -103,7 +103,7 @@ public class SensorData
         }
 		else 
 		{
-			System.out.println("No file chosen!");
+            JOptionPane.showMessageDialog(new JFrame(), "No File Chosen", "Info", JOptionPane.PLAIN_MESSAGE);   
 			return false;
 		}	
 		return true;
