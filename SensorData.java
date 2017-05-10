@@ -135,12 +135,13 @@ public class SensorData
 
 	/**
 	 * Method to return the total number of errors found in the data provided.
-	 * @return The total number of errors - index 0 = total error count, index 1 = different errors count 
+	 * @return The total number of errors, where index 0 = total error count, index 1 = different errors found 
 	 */
 	public int[] findNoOfErrors()
 	{
 		int[] errorsArray = new int[2];
-		int differentErrorCount = 0;
+		LinkedList<String> uniqueErrorsList = new LinkedList<String>();
+		int counter = 0;
 
 	    // Iterate over all data lines and find errors, add to array
  		listIt = dataList.listIterator();
@@ -150,15 +151,40 @@ public class SensorData
         	nextData = listIt.next();
 
         	// Find an error
-        	if (!(nextData.getStatus().equals("0") || (nextData.getStatus().equals("00"))))
+        	if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00")))
         	{
-        		errorsArray[0]++;
+        		errorsArray[0]++; 
+        		uniqueErrorsList.add(nextData.getStatus());
+        		counter++;
         	}
-
-        	// Find total number of different errors
-        	//errorsArray[1]++;
-        	
         }
+
+        // Sort the array of errors (used to help find unique errors)
+        if (uniqueErrorsList.size() > 0)
+        {
+        	Collections.sort(uniqueErrorsList, (String data_1, String data_2) -> data_2.compareTo(data_1));
+
+	    	ListIterator<String> curStatusIt = uniqueErrorsList.listIterator();
+
+	    	String currentStatus = curStatusIt.next();
+	    	String nextStatus;
+
+	    	while (curStatusIt.hasNext())
+	    	{
+	    		nextStatus = curStatusIt.next();
+	    		if (!(currentStatus.equals(nextStatus)))
+	    		{
+	    			// Used for first time round
+	    			if (errorsArray[1] == 0)
+	    				errorsArray[1] += 2;
+	    			else
+	    				errorsArray[1]++;
+
+	    			currentStatus = nextStatus;
+	    		}
+	    	}
+        }
+        
 		return errorsArray;
 	}
 
