@@ -73,6 +73,17 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private ListIterator<DataLine> listIt;
     private DataLine deviceToAdd; 
 
+    // Info pop up panel variables
+    private JPanel mainInfoPanel;
+    private JPanel topInfoPanel;
+    private JPanel midInfoPanel;
+    private JLabel infoTitle;
+    private JTable infoTable;
+    private DefaultTableModel infoTableModel;
+    private final String[] infoNames = {"Sensor Number", "Data (Decimal)", "Data (Hex)"};
+    private int sensorDecValue;
+    private int sensorHexValue;
+
     // Sort panel components
     private JLabel sortLbl;
     private String[] sorts = {"Time since last seen (DESC)", "Time since last seen (ASC)", "Number of errors found", "Messages missed by receiver"};
@@ -236,15 +247,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Sensors panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
-        table = new JTable(tableModel) 
-        {
-            public boolean isCellEditable(int row, int column) 
-            {
+        table = new JTable(tableModel) {
+            public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
         table.getSelectionModel().addListSelectionListener(this);
-
         table.setRowHeight(20);
 
         // Set the column widths in the table
@@ -345,7 +353,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLocation(100,100);
                 window.setSize(900, 1000);
-                window.setResizable(false);
+                window.setResizable(true);
                 window.setVisible(true);
             }
         });
@@ -362,20 +370,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Ensure only triggered once!
         if (!e.getValueIsAdjusting())
         {
-            System.out.println(table.getValueAt(table.getSelectedRow(), 0).toString());
-
-            SwingUtilities.invokeLater(new Runnable() 
-            {
+            SwingUtilities.invokeLater(new Runnable() {
                 @Override
-                public void run() 
-                {
-                    window = new JFrame();
-                    window.setTitle("Sensor Data Information");
-                    window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    window.setLocation(100,100);
-                    window.setSize(500, 500);
-                    window.setResizable(false);
-                    window.setVisible(true);
+                public void run() {
+                    displayInfoScreen();
                 }
             });
         }
@@ -440,11 +438,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             else
             {
                 // Schedule a job for the event-dispatching thread: creating + showing the graph UI.
-                SwingUtilities.invokeLater(new Runnable() 
-                {
+                SwingUtilities.invokeLater(new Runnable() {
                     @Override
-                    public void run() 
-                    {
+                    public void run() {
                         displayGraphs();
                     }
                 }); 
@@ -674,6 +670,91 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     {
         dateValue = deviceToCheck.getDateObtained();
         datePoints.add(dateValue);
+    }
+
+    /**
+     * Method to display a simple pop up window displaying all the details about the user selected row.
+     * The user selects a row from the device table and the window appears.
+     */
+    private void displayInfoScreen()
+    {
+        window = new JFrame();
+        mainInfoPanel = new JPanel(new BorderLayout());
+        topInfoPanel = new JPanel();
+        midInfoPanel = new JPanel(new GridLayout(8,2));
+        JPanel botInfoPanel = new JPanel(new BorderLayout());
+
+        infoTitle = new JLabel("Data Information");
+        infoTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        infoTitle.setFont(new Font("Helvetica", Font.BOLD, 24));
+        infoTitle.setForeground(Color.RED);
+        topInfoPanel.add(infoTitle);
+
+        JLabel deviceAddressLbl = new JLabel("Device Address: ");
+        JLabel deviceTypeLbl = new JLabel("Device Type: ");
+        JLabel deviceVersionLbl = new JLabel("Device version: ");
+        JLabel errorsMissedLbl = new JLabel("Errors missed by Receiver (current total): ");
+        JLabel viaLbl = new JLabel("Receiver that picked up this Transmission: ");
+        JLabel statusLbl = new JLabel("Device Status: ");
+        JLabel dateLbl = new JLabel("Date Obtained: ");
+        JLabel dataLbl = new JLabel("Sensor Data:");
+
+        midInfoPanel.add(deviceAddressLbl);
+        midInfoPanel.add(deviceTypeLbl);
+        midInfoPanel.add(deviceVersionLbl);
+        midInfoPanel.add(errorsMissedLbl);
+        midInfoPanel.add(viaLbl);
+        midInfoPanel.add(statusLbl);
+        midInfoPanel.add(dateLbl);
+        midInfoPanel.add(dataLbl);
+
+        // Clear table contents
+        infoTableModel = new DefaultTableModel(infoNames, 0);
+        infoTable = new JTable(infoTableModel) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        infoTableModel = (DefaultTableModel) infoTable.getModel();
+        infoTableModel.getDataVector().removeAllElements();
+        infoTableModel.fireTableDataChanged();
+        infoTable.setRowHeight(20);
+
+        populateInfoData(table.getValueAt(table.getSelectedRow(), 7).toString());
+
+        scrollPane = new JScrollPane(infoTable);
+        botInfoPanel.add("Center", scrollPane);
+
+        mainInfoPanel.add("North", topInfoPanel);
+        mainInfoPanel.add("Center", midInfoPanel);
+        mainInfoPanel.add("South", botInfoPanel);
+
+        window.add(mainInfoPanel);
+        window.setTitle("Sensor Data Information");
+        window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        window.setLocation(100,100);
+        window.setSize(600, 700);
+        window.setResizable(false);
+        window.setVisible(true);
+    }
+
+    /**
+     * Method to insert all relevant sensor data into the info table on the info pop up window.
+     * @param dataString The sensor data string to break down and display to the user.
+     */
+    private void populateInfoData(String dataString)
+    {
+
+        for (int i = 1; i <= dataString.length()/2; i++)
+        {
+            Object[] dataToAdd = 
+            {
+                Integer.toString(i),
+                sensorDecValue = Integer.parseInt(dataString.substring(i-1,i+1), 16),
+                sensorHexValue = Integer.parseInt(dataString.substring(i-1,i+1))
+            };
+            infoTableModel.addRow(dataToAdd);
+        }
     }
 
     /**
