@@ -16,8 +16,8 @@ import javax.swing.table.*;
  *
  * @author Harry Baines
  */
-public class MainScreen extends JPanel implements ActionListener, ListSelectionListener
-{
+public class MainScreen extends JPanel implements ActionListener, ListSelectionListener {
+
     // SensorData instance to obtain data lines from a CSV file
     private SensorData data = new SensorData();
 
@@ -54,6 +54,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JButton openFileBtn;
     private JButton exportBtn;
     private JButton quitBtn;
+    private JTable basicTable;
+    private DefaultTableModel basicDataModel;
+    private JScrollPane basicScrollPane;
+    private final String[] basicDataNames = {"Number of Lines", "Number of Errors", "Max Value", "Min Value", "Average Value"};
 
     // SENSORS panel components
     private JLabel addressLbl;
@@ -77,12 +81,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JPanel mainInfoPanel;
     private JPanel topInfoPanel;
     private JPanel midInfoPanel;
+    private JPanel botInfoPanel;
     private JLabel infoTitle;
     private JTable infoTable;
     private DefaultTableModel infoTableModel;
     private final String[] infoNames = {"Sensor Number", "Data (Decimal)", "Data (Hex)"};
     private int sensorDecValue;
-    private int sensorHexValue;
+    private String sensorHexValue;
+    private JLabel notesDetailsLbl;
 
     // Sort panel components
     private JLabel sortLbl;
@@ -124,12 +130,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * Constructor to initialise panels and place components on the UI.
      */
-    public MainScreen()
-    {
+    public MainScreen() {
         // HOME panels
         homePanel = new JPanel(new BorderLayout());
         topHomePanel = new JPanel(new GridBagLayout());
-        midHomePanel = new JPanel(new GridBagLayout());
+        midHomePanel = new JPanel(new GridLayout(2,1));
+        midHomePanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         botHomePanel = new JPanel(new GridBagLayout());
         c = new GridBagConstraints();
 
@@ -170,6 +176,23 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topHomePanel.add(fileOpenedLbl, c);
 
         // Home panel - middle
+        JLabel basicDataLbl = new JLabel("Data Summary");
+        basicDataLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        basicDataLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        basicDataLbl.setForeground(Color.BLACK);
+        midHomePanel.add("Center", basicDataLbl);
+
+        basicDataModel = new DefaultTableModel(basicDataNames, 0);
+        basicTable = new JTable(basicDataModel) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        basicTable.setRowHeight(20);
+        basicScrollPane = new JScrollPane(basicTable);
+        midHomePanel.add("Center", basicScrollPane);
+
+        // Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
         openFileBtn.addActionListener(this);
         c.ipady = 50;
@@ -178,12 +201,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridwidth = 1;
         c.gridx = 0;
         c.insets = new Insets(20,20,20,20);
-        midHomePanel.add(openFileBtn, c);
+        botHomePanel.add(openFileBtn, c);
 
-        // Home panel - bottom
         quitBtn = new JButton("Quit");
         quitBtn.addActionListener(this);
-        c.gridx = 0;
+        c.gridx = 1;
         botHomePanel.add(quitBtn, c);
 
         // SENSORS panels
@@ -340,13 +362,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * A method to display the UI to the user thorugh the event-dispatching thread.
      */
-    public void displayScreen() 
-    {
-        SwingUtilities.invokeLater(new Runnable() 
-        {
+    public void displayScreen() {
+        SwingUtilities.invokeLater(new Runnable() {
             @Override
-            public void run() 
-            {
+            public void run() {
                 window = new JFrame();
                 window.add(new MainScreen());
                 window.setTitle("Sensor Data Visualisation");
@@ -365,11 +384,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      *
      * @param e The list selection listener instance.
      */
-    public void valueChanged(ListSelectionEvent e)
-    {   
+    public void valueChanged(ListSelectionEvent e) {   
         // Ensure only triggered once!
-        if (!e.getValueIsAdjusting())
-        {
+        if (!e.getValueIsAdjusting()) {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
@@ -385,13 +402,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      *
      * @param e The action event instance.
      */
-    public void actionPerformed(ActionEvent e)
-    {
+    public void actionPerformed(ActionEvent e) {
         // Open a CSV file
-        if (e.getSource() == openFileBtn)
-        {
-            if (data.findFile())
-            {
+        if (e.getSource() == openFileBtn) {
+            if (data.findFile()) {
                 fileOpenedLbl.setText(data.getFileName());
 
                 // Create bar graph with statistics on data from chosen file
@@ -403,21 +417,18 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             }
         }
 
-        else if (e.getSource() == quitBtn)
-        {
+        else if (e.getSource() == quitBtn) {
             System.exit(0);
         }
 
         // Search for device by address
-        else if (e.getSource() == searchSensBut)
-        {
+        else if (e.getSource() == searchSensBut) {
             // Re-populate table with data from user input device address and populate date comboboxes
             populateTableData();
         }
 
         // Sort the data in the table and populate date comboboxes
-        else if (e.getSource() == applySortBtn)
-        {
+        else if (e.getSource() == applySortBtn) {
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to sort! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
             else
@@ -425,8 +436,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         }
 
         // Visualise data as graphs
-        else if (e.getSource() == applyVisBtn)
-        {         
+        else if (e.getSource() == applyVisBtn) {         
             // Retrieve user input for graph option and date ranges
             selectedItem = visOpts.getSelectedItem().toString();
 
@@ -435,8 +445,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
-            else
-            {
+            else {
                 // Schedule a job for the event-dispatching thread: creating + showing the graph UI.
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
@@ -448,14 +457,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         }
 
         // Check for button export button click on home screen
-        else if (e.getSource() == exportBtn)
-        {
+        else if (e.getSource() == exportBtn) {
             saveToFile(midHomePanel);
         }
 
         // Check for export button click on graph panels
-        else
-        {
+        else {
             for (int i = 0; i < exportBtns.length; i++)
                 if (e.getSource() == exportBtns[i])
                     saveToFile(graphPanels[i]);
@@ -465,8 +472,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * A method to display the graph user interface.
      */
-    private void displayGraphs()
-    {
+    private void displayGraphs() {
         graphWindow = new JFrame("Scatter Graphs");
         graphTabPane = new JTabbedPane();
         graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -476,11 +482,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Check if devices found has fewer than 6 dates, if so use all dates to fill up space
         if (devicesFound.size() < 6)
             JOptionPane.showMessageDialog(new JFrame(), "Insufficient data to plot. 6 or more devices are required to plot the graphs.", "Error", JOptionPane.ERROR_MESSAGE);   
-        else
-        {   if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]))
+        else {   
+        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]))
                 JOptionPane.showMessageDialog(new JFrame(), "Error - scatter graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
-            else
-            {
+            else {
                 sensInc = 1;
 
                 // Used to obtain index in frequency array - then will be used to access int values for plot
@@ -495,8 +500,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 }
 
                 // Plot all data graphs for all sensors
-                for (int i = 1; i <= 10; i++)
-                {
+                for (int i = 1; i <= 10; i++) {
                     // Retrieve sensor name and create new panel
                     sensorString = "Sensor " + i;
                     graphPanels[i-1] = new JPanel(new BorderLayout());
@@ -512,31 +516,26 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                     int dateInc = frequencyPlotValues[index][1] - 1;
 
                     // Add occasional date between data points - used to display on graph component
-                    while (listIt.hasNext())
-                    {
+                    while (listIt.hasNext()) {
+
                         deviceToCheck = listIt.next();
-     
-                        if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0])
-                        { 
+
+                        if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0]) { 
                             runningIncrement += increment;
 
-                            try 
-                            {
+                            try {
                                 addSensorPoint(deviceToCheck, sensInc);
                             }
-                            catch (NumberFormatException ex)
-                            {
+                            catch (NumberFormatException ex) {
                                 System.out.println("CANT CONVERT TO DECIMAL FROM HEX");
                             }
-                            catch (StringIndexOutOfBoundsException str)
-                            {
+                            catch (StringIndexOutOfBoundsException str) {
                                 System.out.println("OUT OF BOUNDS!");
                             }
                             dateInc++;
 
                             // For every X data plots, write date string on X axis
-                            if (dateInc == frequencyPlotValues[index][1])
-                            {
+                            if (dateInc == frequencyPlotValues[index][1]) {
                                 addDatePoint(deviceToCheck);
                                 dateInc = 0;
                             }
@@ -546,23 +545,19 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                     }
 
                     // Add final sensor and date point values after while loop has finished
-                    try
-                    {
+                    try {
                         addSensorPoint(deviceToCheck, sensInc);
                         addDatePoint(deviceToCheck);
                     }
-                    catch (NumberFormatException ex)
-                    {
+                    catch (NumberFormatException ex) {
                         System.out.println("CANT CONVERT TO DECIMAL FROM HEX");
                     }
-                    catch (StringIndexOutOfBoundsException str)
-                    {
+                    catch (StringIndexOutOfBoundsException str) {
                         System.out.println("OUT OF BOUNDS!");
                     }
 
                     // Display error message detailing data that couldn't be plotted
-                    if (sensorPoints.size() == 0)
-                    {
+                    if (sensorPoints.size() == 0) {
                         JLabel errorLbl = new JLabel("Data could not be plotted for this sensor. See table below for details:");
                         errorLbl.setHorizontalAlignment(SwingConstants.CENTER);
                         errorLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
@@ -570,8 +565,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                         graphPanels[i-1].add("Center", errorLbl);
                         graphTabPane.add(sensorString, graphPanels[i-1]);
                     }
-                    else
-                    {
+                   else {
                        // Prepare title string for graph plotting
                         title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
 
@@ -615,8 +609,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * Method to clear the current contents of the table and re-populate it with sorted/searched data.
      */
-    private void populateTableData()
-    {
+    private void populateTableData() {
         // Clear table contents
         tableModel = (DefaultTableModel) table.getModel();
         tableModel.getDataVector().removeAllElements();
@@ -631,14 +624,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Iterate over linked list and add to output
         listIt = devicesFound.listIterator();
 
-        while (listIt.hasNext())
-        {
+        while (listIt.hasNext()) {
             // Obtain next device properties
             deviceToAdd = listIt.next();
 
             // Store properties from data line
-            Object[] dataToAdd = 
-            {
+            Object[] dataToAdd = {
                 deviceToAdd.getDateObtained(),
                 deviceToAdd.getType(), 
                 deviceToAdd.getVersion(), 
@@ -660,14 +651,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             resultsFoundLbl.setText("Results Found: " + devicesFound.size());
     }
 
-    private void addSensorPoint(DataLine deviceToCheck, int sensInc)
-    {
+    private void addSensorPoint(DataLine deviceToCheck, int sensInc) {
         sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
         sensorPoints.add(sensorValue);
     }
 
-    private void addDatePoint(DataLine deviceToCheck)
-    {
+    private void addDatePoint(DataLine deviceToCheck) {
         dateValue = deviceToCheck.getDateObtained();
         datePoints.add(dateValue);
     }
@@ -676,13 +665,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * Method to display a simple pop up window displaying all the details about the user selected row.
      * The user selects a row from the device table and the window appears.
      */
-    private void displayInfoScreen()
-    {
+    private void displayInfoScreen() {
         window = new JFrame();
         mainInfoPanel = new JPanel(new BorderLayout());
         topInfoPanel = new JPanel();
-        midInfoPanel = new JPanel(new GridLayout(8,2));
-        JPanel botInfoPanel = new JPanel(new BorderLayout());
+        midInfoPanel = new JPanel(new GridLayout(9,2));
+        midInfoPanel.setBorder(new EmptyBorder(5, 20, 20, 20));
+        botInfoPanel = new JPanel(new BorderLayout());
+        botInfoPanel.setBorder(new EmptyBorder(20, 20, 30, 20));
 
         infoTitle = new JLabel("Data Information");
         infoTitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -699,14 +689,36 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         JLabel dateLbl = new JLabel("Date Obtained: ");
         JLabel dataLbl = new JLabel("Sensor Data:");
 
+        JLabel addressDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 5).toString());
+        JLabel typeDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 1).toString());
+        JLabel versionDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 2).toString());
+        JLabel errorsDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 3).toString());
+        JLabel viaDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 4).toString());
+        JLabel statusDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 6).toString());
+        JLabel dateDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 0).toString());
+        JLabel dataDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 7).toString());
+
+        JLabel generalNotesLbl = new JLabel("General Notes: ");
+        notesDetailsLbl = new JLabel("No problems detected");
+
         midInfoPanel.add(deviceAddressLbl);
+        midInfoPanel.add(addressDetails);
         midInfoPanel.add(deviceTypeLbl);
+        midInfoPanel.add(typeDetails);
         midInfoPanel.add(deviceVersionLbl);
+        midInfoPanel.add(versionDetails);
         midInfoPanel.add(errorsMissedLbl);
+        midInfoPanel.add(errorsDetails);
         midInfoPanel.add(viaLbl);
+        midInfoPanel.add(viaDetails);
         midInfoPanel.add(statusLbl);
+        midInfoPanel.add(statusDetails);
         midInfoPanel.add(dateLbl);
+        midInfoPanel.add(dateDetails);
         midInfoPanel.add(dataLbl);
+        midInfoPanel.add(dataDetails);
+        midInfoPanel.add(generalNotesLbl);
+        midInfoPanel.add(notesDetailsLbl);
 
         // Clear table contents
         infoTableModel = new DefaultTableModel(infoNames, 0);
@@ -733,7 +745,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         window.setTitle("Sensor Data Information");
         window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         window.setLocation(100,100);
-        window.setSize(600, 700);
+        window.setSize(720, 700);
         window.setResizable(false);
         window.setVisible(true);
     }
@@ -742,27 +754,32 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * Method to insert all relevant sensor data into the info table on the info pop up window.
      * @param dataString The sensor data string to break down and display to the user.
      */
-    private void populateInfoData(String dataString)
-    {
+    private void populateInfoData(String dataString) {
+    	sensInc = 1;
+        for (int i = 1; i <= dataString.length()/2; i++) {
 
-        for (int i = 1; i <= dataString.length()/2; i++)
-        {
-            Object[] dataToAdd = 
-            {
+        	try {
+        		sensorDecValue = Integer.parseInt(dataString.substring(sensInc-1,sensInc+1), 16);
+        	}
+        	catch (NumberFormatException e) {
+        		notesDetailsLbl.setText("Errors found - couldn't recognise some sensor data.");
+        		sensorDecValue = 0;
+        	}
+            Object[] dataToAdd = {
                 Integer.toString(i),
-                sensorDecValue = Integer.parseInt(dataString.substring(i-1,i+1), 16),
-                sensorHexValue = Integer.parseInt(dataString.substring(i-1,i+1))
+                sensorDecValue,
+                sensorHexValue = dataString.substring(sensInc-1,sensInc+1),
             };
             infoTableModel.addRow(dataToAdd);
-        }
+            sensInc += 2;
+        } 
     }
 
     /**
      * Method to save painted components on a panel to a png file in the users chosen directory.
      * @param panel The panel that contains the components to be saved to a png file.
      */
-    private void saveToFile(JPanel panel)
-    {
+    private void saveToFile(JPanel panel) {
         selectDest = new JFileChooser();
         selectDest.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
         selectDest.showSaveDialog(null);
