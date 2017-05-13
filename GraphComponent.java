@@ -60,11 +60,11 @@ public class GraphComponent extends JPanel
 
         // Axis lines
         g2.draw(new Line2D.Double(pad*2, pad, pad*2, height-pad));
-        g2.draw(new Line2D.Double(pad*2, height-pad, width-pad, height-pad));
-        g2.draw(new Line2D.Double(pad*2, pad, pad*2-5, pad+5));
-        g2.draw(new Line2D.Double(pad*2, pad, pad*2+5, pad+5));
-        g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad-5));
-        g2.draw(new Line2D.Double(width-pad, height-pad, width-pad-5, height-pad+5));
+        g2.draw(new Line2D.Double(pad*2, height-pad, width-pad*2, height-pad));
+        g2.draw(new Line2D.Double(pad*2, pad, (pad*2)-5, pad+5));
+        g2.draw(new Line2D.Double(pad*2, pad, (pad*2)+5, pad+5));
+        g2.draw(new Line2D.Double(width-(pad*2), height-pad, width-((pad*2)+5), height-pad-5));
+        g2.draw(new Line2D.Double(width-(pad*2), height-pad, width-((pad*2)+5), height-pad+5));
 
         // Title label
 		g2.setFont(new Font("Verdana", Font.PLAIN, 22)); 

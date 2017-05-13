@@ -5,9 +5,9 @@
  *
  * @author Harry Baines
  */
-public class DataLine
-{
-	// Instance variables
+public class DataLine {
+
+	// Instance variables - all fields of a data line in a CSV file
 	private String time;
 	private String type;
 	private String version;
@@ -33,8 +33,7 @@ public class DataLine
 	 * @param date_obtained The date the data was obtained.
 	 */
 	public DataLine(String time, String type, String version, String counter, String via, String address,
-		String status, String sensor_data, String date_obtained)
-	{
+		String status, String sensor_data, String date_obtained) {
 		this.time = time;
 		this.type = type;
 		this.version = version;
@@ -50,8 +49,7 @@ public class DataLine
  	 * Returns the time in seconds the sensor reading was sent.
  	 * @return The time in seconds.
  	 */
- 	public int getTime()
- 	{
+ 	public int getTime() {
  		return (Integer.parseInt(time));
  	}
 
@@ -59,8 +57,7 @@ public class DataLine
  	 * Returns the type code of the device.
  	 * @return The type code as a string.
  	 */
- 	public String getType()
- 	{
+ 	public String getType() {
  		return type;
  	}
 
@@ -68,8 +65,7 @@ public class DataLine
  	 * Returns the software version the device is running.
  	 * @return The software version as string.
  	 */
- 	public String getVersion()
- 	{
+ 	public String getVersion() {
  		return version;
  	}
 
@@ -77,8 +73,7 @@ public class DataLine
  	 * Returns the number of messages being missed by the receiver.
  	 * @return The counter value as a string.
  	 */
- 	public String getCounter()
- 	{
+ 	public String getCounter() {
  		return counter;
  	}
 
@@ -86,8 +81,7 @@ public class DataLine
  	 * Returns which receiver picked up the device's transmission.
  	 * @return The receiver as a string.
  	 */
- 	public String getVia()
- 	{
+ 	public String getVia() {
  		return via;
  	}
 
@@ -95,8 +89,7 @@ public class DataLine
  	 * Returns the address of the transmitter.
  	 * @return The address as a string.
  	 */
- 	public String getAddress()
- 	{
+ 	public String getAddress() {
  		return address;
  	}
 
@@ -104,8 +97,7 @@ public class DataLine
  	 * Returns the status code of the device.
  	 * @return The status code as a string.
  	 */
- 	public String getStatus()
- 	{
+ 	public String getStatus() {
  		return status;
  	}
 
@@ -113,8 +105,7 @@ public class DataLine
  	 * Returns the 10-bytes of sensor data. 
  	 * @return The sensor data as a string.
  	 */
- 	public String getSensorData()
- 	{
+ 	public String getSensorData() {
  		return sensor_data;
  	}
 
@@ -122,8 +113,7 @@ public class DataLine
  	 * Returns the date the data value was obtained.
  	 * @return The date as a string.
  	 */
- 	public String getDateObtained()
- 	{
+ 	public String getDateObtained() {
  		return date_obtained;
  	}
 
@@ -131,8 +121,7 @@ public class DataLine
  	 * Returns the full string value containing all details about the data line
  	 * @return The full string information.
  	 */
- 	public String getStringLine()
- 	{
+ 	public String getStringLine() {
  		return (time + " " + type + " " + version + " " + counter + " " + via + " " + address + " " + status + " " + sensor_data + " " + date_obtained);
  	}
 }

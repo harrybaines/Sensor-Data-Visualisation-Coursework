@@ -216,9 +216,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Sensors panel - bottom
         botSortPanel = new JPanel(new GridLayout(4,1,10,10));
+        botSortPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         botVisPanel = new JPanel(new GridLayout(5,1,20,20));
         botSensPanel.add("West", botSortPanel);
         botSensPanel.add("East", botVisPanel);
+        botSensPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         // Add panels to sensors  
         sensorPanel.add("North", topSensPanel);
@@ -226,10 +228,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         sensorPanel.add("South", botSensPanel);
 
         // Components - Sensors
-        addressLbl = new JLabel("Search for device (address): ");
+        addressLbl = new JLabel("Search For Device (By Address): ");
         addressLbl.setHorizontalAlignment(SwingConstants.CENTER);
         addressLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
-        addressLbl.setForeground(Color.RED);
+        addressLbl.setForeground(Color.BLUE);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 10;
         c.weightx = 0.5;
@@ -322,6 +324,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         statsPanel = new JPanel(new BorderLayout());
         topStatPanel = new JPanel(new GridBagLayout());
         midStatPanel = new JPanel(new GridLayout(6,1));
+        midStatPanel.setBorder(new EmptyBorder(20,20,20,20));
         botStatPanel = new JPanel(new GridBagLayout());
 
         statsPanel.add("North", topStatPanel);
@@ -331,7 +334,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         statsLbl = new JLabel("Data Statistics:");
         statsLbl.setHorizontalAlignment(SwingConstants.CENTER);
         statsLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
-        statsLbl.setForeground(Color.RED);
+        statsLbl.setForeground(Color.BLUE);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 10;
         c.weightx = 0.5;
@@ -386,13 +389,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     public void valueChanged(ListSelectionEvent e) {   
         // Ensure only triggered once!
-        if (!e.getValueIsAdjusting()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    displayInfoScreen();
-                }
-            });
+        if (table.getSelectedRow() >= 0 && e.getValueIsAdjusting()) {
+            displayInfoScreen();
         }
     }
 
@@ -429,6 +427,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Sort the data in the table and populate date comboboxes
         else if (e.getSource() == applySortBtn) {
+    
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to sort! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
             else
@@ -610,11 +609,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * Method to clear the current contents of the table and re-populate it with sorted/searched data.
      */
     private void populateTableData() {
-        // Clear table contents
-        tableModel = (DefaultTableModel) table.getModel();
-        tableModel.getDataVector().removeAllElements();
-        tableModel.fireTableDataChanged();
 
+		// Clear table contents
+   	 	tableModel = (DefaultTableModel) table.getModel();
+   	 	tableModel.getDataVector().removeAllElements();
+   		tableModel.fireTableDataChanged();
+        
         // If user has searched for data, display that, otherwise show all
         devicesFound = data.findDeviceByAddress(addressEntry.getText());
 
@@ -643,7 +643,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             // Add row to table
             tableModel.addRow(dataToAdd);
         }
-   
+
         // Results found data
         if (devicesFound.size() == 0)
             resultsFoundLbl.setText("No Results Found");
@@ -665,7 +665,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * Method to display a simple pop up window displaying all the details about the user selected row.
      * The user selects a row from the device table and the window appears.
      */
-    private void displayInfoScreen() {
+    private void displayInfoScreen() {    	
         window = new JFrame();
         mainInfoPanel = new JPanel(new BorderLayout());
         topInfoPanel = new JPanel();

@@ -12,8 +12,8 @@ import java.text.SimpleDateFormat;
  */
 public class SensorData
 {
-	// Calendar/Date instance variables
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
+	// Calendar/date instance variables
+	private final SimpleDateFormat dateFormat;
     private GregorianCalendar cal;
 
     // Data and file variables
@@ -27,28 +27,33 @@ public class SensorData
 	private String[] dataLine;
 	private DataLine nextData;
 
-    // Linked list to store data lines from CSV file
-    private LinkedList<DataLine> dataList = new LinkedList<DataLine>();
+	// Error variables
+	private int[] errorsArray;
+	private LinkedList<String> uniqueErrorsList = new LinkedList<String>(); // Linked list to store unique errors !!!!
+	private int counter;
 
-    // Linked list to store all devices found when a search has occured
-    private LinkedList<DataLine> devicesFound = new LinkedList<DataLine>();
-
-    // List iterator to iterate over all data lines
-    private ListIterator<DataLine> listIt;
+    private LinkedList<DataLine> dataList; // Linked list to store data lines from CSV file
+    private LinkedList<DataLine> devicesFound; // Linked list to store all devices found when a search has occured
+    private ListIterator<DataLine> listIt; // List iterator to iterate over all data lines
 
 	/**
-	 * Simple constructor to set the time zone for date calculations.
+	 * Simple constructor to initialise the instance variables.
 	 */
-	public SensorData()
-	{
+	public SensorData() {
+		dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+		dataList = new LinkedList<DataLine>();
+		devicesFound = new LinkedList<DataLine>();
+
+		errorsArray = new int[2];
 	}
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
      */
-	public boolean findFile()
-	{
+	public boolean findFile() {
+
 		// Clear linked list
 		while (!dataList.isEmpty())
 	        dataList.removeFirst();
@@ -60,27 +65,22 @@ public class SensorData
 		source.setFileFilter(filter);
 
 		// Read CSV file
-		if (source.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) 
-		{   
+		if (source.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {   
 			// Store file data into variables
 			selectedFile = source.getSelectedFile();
 			fileString = selectedFile.toString();
 			extension = fileString.substring(fileString.lastIndexOf(".") + 1, fileString.length());
 
 			// Error checking
-			if (!extension.equals("csv")) 
-			{
+			if (!extension.equals("csv")) {
 			    JOptionPane.showMessageDialog(new JFrame(), "Error - please choose a CSV file!", "Error", JOptionPane.ERROR_MESSAGE);	
 			    return false;
 			}
-			else
-			{
-				try 
-				{
+			else {
+				try {
 					// Open the file and read line by line
 					reader = new BufferedReader(new FileReader(selectedFile));
-		            while ((line = reader.readLine()) != null) 
-		            {
+		            while ((line = reader.readLine()) != null) {
 		                // Comma = separator
 		                dataLine = line.split(",");
 
@@ -91,18 +91,15 @@ public class SensorData
 		            // Show success dialog
 					JOptionPane.showMessageDialog(new JFrame(), "File successfully opened!");
 				}
-				catch (FileNotFoundException e) 
-				{
+				catch (FileNotFoundException e) {
 	            	return false;
 				}
-	       		catch (IOException e) 
-	       		{
+	       		catch (IOException e) {
 	            	return false;
 	       		}
 			}
         }
-		else 
-		{
+		else {
             JOptionPane.showMessageDialog(new JFrame(), "No File Chosen", "Info", JOptionPane.PLAIN_MESSAGE);   
 			return false;
 		}	
@@ -115,8 +112,8 @@ public class SensorData
 	 * @param address The address of the device the user wishes to search for.
 	 * @return The linked list containing all device search results found.
 	 */
-	public LinkedList<DataLine> findDeviceByAddress(String address)
-	{
+	public LinkedList<DataLine> findDeviceByAddress(String address) {
+
 		// Clear linked list
 		while (!devicesFound.isEmpty())
 	        devicesFound.removeFirst();
@@ -124,8 +121,7 @@ public class SensorData
 	    // Iterate over data lines - search for device, add to linked list
  		listIt = dataList.listIterator();
 
-        while (listIt.hasNext())
-        {
+        while (listIt.hasNext()) {
         	nextData = listIt.next();
         	if (nextData.getAddress().equals(address))
         		devicesFound.add(nextData);
@@ -137,22 +133,18 @@ public class SensorData
 	 * Method to return the total number of errors found in the data provided.
 	 * @return The total number of errors, where index 0 = total error count, index 1 = different errors found 
 	 */
-	public int[] findNoOfErrors()
-	{
-		int[] errorsArray = new int[2];
-		LinkedList<String> uniqueErrorsList = new LinkedList<String>();
-		int counter = 0;
+	public int[] findNoOfErrors() {
+
+		counter = 0;
 
 	    // Iterate over all data lines and find errors, add to array
  		listIt = dataList.listIterator();
 
-        while (listIt.hasNext())
-        {
+        while (listIt.hasNext()) {
         	nextData = listIt.next();
 
         	// Find an error
-        	if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00")))
-        	{
+        	if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00"))) {
         		errorsArray[0]++; 
         		uniqueErrorsList.add(nextData.getStatus());
         		counter++;
@@ -160,8 +152,7 @@ public class SensorData
         }
 
         // Sort the array of errors (used to help find unique errors)
-        if (uniqueErrorsList.size() > 0)
-        {
+        if (uniqueErrorsList.size() > 0) {
         	Collections.sort(uniqueErrorsList, (String data_1, String data_2) -> data_2.compareTo(data_1));
 
 	    	ListIterator<String> curStatusIt = uniqueErrorsList.listIterator();
@@ -169,11 +160,9 @@ public class SensorData
 	    	String currentStatus = curStatusIt.next();
 	    	String nextStatus;
 
-	    	while (curStatusIt.hasNext())
-	    	{
+	    	while (curStatusIt.hasNext()) {
 	    		nextStatus = curStatusIt.next();
-	    		if (!(currentStatus.equals(nextStatus)))
-	    		{
+	    		if (!(currentStatus.equals(nextStatus))) {
 	    			// Used for first time round
 	    			if (errorsArray[1] == 0)
 	    				errorsArray[1] += 2;
@@ -193,8 +182,7 @@ public class SensorData
      * @param user_selection The users selected sort option from the combobox.
      * @param list The linked list to sort.
      */
-    public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts)
-    {
+    public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts) {
 		if (user_selection.equals(sorts[0]))
 			Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
 
@@ -212,8 +200,7 @@ public class SensorData
 	 * Returns the name of the file opened.
 	 * @return The opened file as a string.
 	 */
-	public String getFileName()
-	{
+	public String getFileName() {
 		return ("Currently Using File: \"" + selectedFile.getName() + "\"");
 	}
 
@@ -221,8 +208,7 @@ public class SensorData
 	 * Method to return the total number of records in the file.
 	 * @return The number of records as an integer.
 	 */
-	public int getNoOfRecords()
-	{
+	public int getNoOfRecords() {
 		return dataList.size();
 	}
 
@@ -230,8 +216,7 @@ public class SensorData
 	 * Method to return a linked list of all the data lines present in the CSV input file for use in output table.
 	 * @return The linked list of data lines.
 	 */
-	public LinkedList<DataLine> getAllData()
-	{
+	public LinkedList<DataLine> getAllData() {
 		return dataList;
 	}
 
@@ -241,8 +226,7 @@ public class SensorData
 	 * @param s The number of seconds to add to the date.
 	 * @return The date as a string in a human-readable form.
 	 */
-	private String addSecondsToDate(int s)
-	{
+	private String addSecondsToDate(int s) {
         cal = new GregorianCalendar(2000,00,01,0,0,0);
         cal.add(Calendar.SECOND, s);
         return (dateFormat.format(cal.getTime()));
