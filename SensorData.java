@@ -45,7 +45,6 @@ public class SensorData
 
 		dataList = new LinkedList<DataLine>();
 		devicesFound = new LinkedList<DataLine>();
-
 		errorsArray = new int[2];
 	}
 

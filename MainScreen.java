@@ -50,20 +50,28 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel titleLbl;
     private JLabel versionLbl;
     private JLabel fileOpenedLbl;
-    private int[] barGraphValues = {0,0,0};
+    private JLabel basicDataLbl;
+    private JLabel noOfLinesLbl;
+    private JLabel noOfErrorsLbl;
+    private JLabel maxValLbl;
+    private JLabel minValLbl;
+    private JLabel avgValLbl;
+    private JLabel linesLbl;
+    private JLabel errorsLbl;
+    private JLabel maxLbl;
+    private JLabel minLbl;
+    private JLabel avgLbl;
+
     private JButton openFileBtn;
     private JButton exportBtn;
     private JButton quitBtn;
-    private JTable basicTable;
-    private DefaultTableModel basicDataModel;
-    private JScrollPane basicScrollPane;
-    private final String[] basicDataNames = {"Number of Lines", "Number of Errors", "Max Value", "Min Value", "Average Value"};
 
     // SENSORS panel components
     private JLabel addressLbl;
     private JTextField addressEntry;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
+    private JLabel plotOptLbl;
     private String selectedItem;
 
     // Table variables
@@ -125,17 +133,19 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // STATISTICS panel components
     private JLabel statsLbl; 
+    private int[] barGraphValues = {0,0,0};
     private int[] errorsArray;
 
     /**
      * Constructor to initialise panels and place components on the UI.
      */
     public MainScreen() {
+
         // HOME panels
         homePanel = new JPanel(new BorderLayout());
         topHomePanel = new JPanel(new GridBagLayout());
-        midHomePanel = new JPanel(new GridLayout(2,1));
-        midHomePanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        midHomePanel = new JPanel(new GridBagLayout());
+        midHomePanel.setBorder(new EmptyBorder(10, 20, 10, 20));
         botHomePanel = new JPanel(new GridBagLayout());
         c = new GridBagConstraints();
 
@@ -176,21 +186,93 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topHomePanel.add(fileOpenedLbl, c);
 
         // Home panel - middle
-        JLabel basicDataLbl = new JLabel("Data Summary");
+        basicDataLbl = new JLabel("Data Summary:");
         basicDataLbl.setHorizontalAlignment(SwingConstants.CENTER);
         basicDataLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
         basicDataLbl.setForeground(Color.BLACK);
-        midHomePanel.add("Center", basicDataLbl);
+        c.gridy = 4;
+        topHomePanel.add(basicDataLbl, c);
+     	
+        noOfLinesLbl = new JLabel("Number Of Lines");
+        noOfLinesLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        noOfLinesLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        noOfLinesLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        noOfLinesLbl.setForeground(Color.BLUE);
+        c.gridwidth = 1;
+        c.gridheight = 2;
+        c.ipady = 5;
+        c.gridy = 0;
+        c.gridx = 0;
+        c.weighty = 0.5;
+        c.weightx = 0.5;
+        c.insets = new Insets(0,5,300,5);
+        midHomePanel.add(noOfLinesLbl, c);
 
-        basicDataModel = new DefaultTableModel(basicDataNames, 0);
-        basicTable = new JTable(basicDataModel) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        basicTable.setRowHeight(20);
-        basicScrollPane = new JScrollPane(basicTable);
-        midHomePanel.add("Center", basicScrollPane);
+        noOfErrorsLbl = new JLabel("Number Of Errors");
+        noOfErrorsLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        noOfErrorsLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        noOfErrorsLbl.setForeground(Color.BLUE);
+        c.gridx = 1;
+        c.gridy = 0;
+        midHomePanel.add(noOfErrorsLbl, c);
+
+        maxValLbl = new JLabel("Max Value");
+        maxValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        maxValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        maxValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        maxValLbl.setForeground(Color.BLUE);
+        c.gridx = 2;        
+        c.gridy = 0;
+        midHomePanel.add(maxValLbl, c);
+
+        minValLbl = new JLabel("Min Value");
+        minValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        minValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        minValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        minValLbl.setForeground(Color.BLUE);
+        c.gridx = 3;        
+        c.gridy = 0;
+        midHomePanel.add(minValLbl, c);
+
+        avgValLbl = new JLabel("Average Value");
+        avgValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        avgValLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        avgValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        avgValLbl.setForeground(Color.BLUE);
+        c.gridx = 4;        
+        c.gridy = 0;
+        midHomePanel.add(avgValLbl, c);
+
+        linesLbl = new JLabel("0");
+        linesLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 0;
+        c.gridy = 1;        
+        c.insets = new Insets(5,0,100,0);
+        midHomePanel.add(linesLbl, c);
+
+        errorsLbl = new JLabel("0");
+        errorsLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 1;        
+        c.gridy = 1;
+        midHomePanel.add(errorsLbl, c);
+
+        maxLbl = new JLabel("0");
+        maxLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 2;        
+        c.gridy = 1;
+        midHomePanel.add(maxLbl, c);
+
+        minLbl = new JLabel("0");
+        minLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridy = 1;
+        c.gridx = 3;
+        midHomePanel.add(minLbl, c);
+
+        avgLbl = new JLabel("0");
+        avgLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 4;
+        c.gridy = 1;        
+        midHomePanel.add(avgLbl, c);
 
         // Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
@@ -309,7 +391,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         applyVisBtn = new JButton("Apply");
         applyVisBtn.addActionListener(this);
 
-        JLabel plotOptLbl = new JLabel("Choose Graph Detail:");
+        plotOptLbl = new JLabel("Choose Graph Detail:");
         plotOptLbl.setHorizontalAlignment(SwingConstants.CENTER);
         plotOptLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
         plotOptLbl.setForeground(Color.RED);
@@ -411,6 +493,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 barGraphValues[0] = data.getNoOfRecords();
                 barGraphValues[1] = errorsArray[0];
                 barGraphValues[2] = errorsArray[1];
+                
+                // Update home labels
+                linesLbl.setText(Integer.toString(data.getNoOfRecords()));
+                errorsLbl.setText(Integer.toString(data.findNoOfErrors()[0]));
+
+                // Reset table with old data
                 populateTableData();
             }
         }
