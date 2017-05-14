@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.lang.Math;
 import java.text.Collator;
 import java.io.*;
 import javax.imageio.ImageIO;
@@ -53,11 +54,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel basicDataLbl;
     private JLabel noOfLinesLbl;
     private JLabel noOfErrorsLbl;
+    private JLabel percentErrorLbl;
     private JLabel maxValLbl;
     private JLabel minValLbl;
     private JLabel avgValLbl;
     private JLabel linesLbl;
     private JLabel errorsLbl;
+    private JLabel percentLbl;
     private JLabel maxLbl;
     private JLabel minLbl;
     private JLabel avgLbl;
@@ -188,9 +191,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Home panel - middle
         basicDataLbl = new JLabel("Data Summary:");
         basicDataLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        basicDataLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        basicDataLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
         basicDataLbl.setForeground(Color.BLACK);
         c.gridy = 4;
+        c.insets = new Insets(200,0,0,0);
         topHomePanel.add(basicDataLbl, c);
      	
         noOfLinesLbl = new JLabel("Number Of Lines");
@@ -216,12 +220,20 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridy = 0;
         midHomePanel.add(noOfErrorsLbl, c);
 
+        percentErrorLbl = new JLabel("% Error");
+        percentErrorLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        percentErrorLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        percentErrorLbl.setForeground(Color.BLUE);
+        c.gridx = 2;
+        c.gridy = 0;
+        midHomePanel.add(percentErrorLbl, c);
+
         maxValLbl = new JLabel("Max Value");
         maxValLbl.setHorizontalAlignment(SwingConstants.CENTER);
         maxValLbl.setHorizontalAlignment(SwingConstants.CENTER);
         maxValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
         maxValLbl.setForeground(Color.BLUE);
-        c.gridx = 2;        
+        c.gridx = 3;        
         c.gridy = 0;
         midHomePanel.add(maxValLbl, c);
 
@@ -230,7 +242,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         minValLbl.setHorizontalAlignment(SwingConstants.CENTER);
         minValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
         minValLbl.setForeground(Color.BLUE);
-        c.gridx = 3;        
+        c.gridx = 4;        
         c.gridy = 0;
         midHomePanel.add(minValLbl, c);
 
@@ -239,7 +251,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         avgValLbl.setHorizontalAlignment(SwingConstants.CENTER);
         avgValLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
         avgValLbl.setForeground(Color.BLUE);
-        c.gridx = 4;        
+        c.gridx = 5;        
         c.gridy = 0;
         midHomePanel.add(avgValLbl, c);
 
@@ -247,7 +259,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         linesLbl.setHorizontalAlignment(SwingConstants.CENTER);
         c.gridx = 0;
         c.gridy = 1;        
-        c.insets = new Insets(5,0,100,0);
+        c.insets = new Insets(5,0,200,0);
         midHomePanel.add(linesLbl, c);
 
         errorsLbl = new JLabel("0");
@@ -256,21 +268,27 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridy = 1;
         midHomePanel.add(errorsLbl, c);
 
+        percentLbl = new JLabel("0");
+        percentLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 2;        
+        c.gridy = 1;
+        midHomePanel.add(percentLbl, c);
+
         maxLbl = new JLabel("0");
         maxLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        c.gridx = 2;        
+        c.gridx = 3;        
         c.gridy = 1;
         midHomePanel.add(maxLbl, c);
 
         minLbl = new JLabel("0");
         minLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        c.gridx = 4;
         c.gridy = 1;
-        c.gridx = 3;
         midHomePanel.add(minLbl, c);
 
         avgLbl = new JLabel("0");
         avgLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        c.gridx = 4;
+        c.gridx = 5;
         c.gridy = 1;        
         midHomePanel.add(avgLbl, c);
 
@@ -319,18 +337,17 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.weightx = 0.5;
         c.gridx = 0;
         c.gridy = 0;
-        c.insets= new Insets(10,0,10,0);
+        c.insets= new Insets(10,0,50,0);
         topSensPanel.add(addressLbl, c);
 
         addressEntry = new JTextField(20);
         addressEntry.addActionListener(this);
         addressEntry.setHorizontalAlignment(SwingConstants.CENTER);
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 0.5;
         c.ipady = 5;
         c.gridx = 0;
         c.gridy = 1;
-        c.insets = new Insets(10,250,10,250);
+        c.insets = new Insets(50,250,10,250);
         topSensPanel.add(addressEntry, c);
 
         searchSensBut = new JButton("Find");
@@ -339,6 +356,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.fill = GridBagConstraints.HORIZONTAL;
         c.gridx = 0;
         c.gridy = 2;
+        c.insets = new Insets(10,250,10,250);
         topSensPanel.add(searchSensBut, c);
 
         resultsFoundLbl = new JLabel("No Results Found");
@@ -497,6 +515,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 // Update home labels
                 linesLbl.setText(Integer.toString(data.getNoOfRecords()));
                 errorsLbl.setText(Integer.toString(data.findNoOfErrors()[0]));
+                percentLbl.setText(Long.toString((Math.round( ((double)(errorsArray[0]) / (double)(data.getNoOfRecords())) * 100 ))) + "%");
 
                 // Reset table with old data
                 populateTableData();
