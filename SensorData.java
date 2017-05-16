@@ -39,7 +39,8 @@ public class SensorData
 	/**
 	 * Simple constructor to initialise the instance variables.
 	 */
-	public SensorData() {
+	public SensorData() 
+	{
 		dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.UK);
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
@@ -51,8 +52,8 @@ public class SensorData
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
      */
-	public boolean findFile() {
-
+	public boolean findFile() 
+	{
 		// Clear linked list
 		while (!dataList.isEmpty())
 	        dataList.removeFirst();
@@ -111,8 +112,8 @@ public class SensorData
 	 * @param address The address of the device the user wishes to search for.
 	 * @return The linked list containing all device search results found.
 	 */
-	public LinkedList<DataLine> findDeviceByAddress(String address) {
-
+	public LinkedList<DataLine> findDeviceByAddress(String address) 
+	{
 		// Clear linked list
 		while (!devicesFound.isEmpty())
 	        devicesFound.removeFirst();
@@ -132,9 +133,15 @@ public class SensorData
 	 * Method to return the total number of errors found in the data provided.
 	 * @return The total number of errors, where index 0 = total error count, index 1 = different errors found 
 	 */
-	public int[] findNoOfErrors() {
-
+	public int[] findNoOfErrors() 
+	{
 		counter = 0;
+	    errorsArray[0] = 0;
+	    errorsArray[1] = 0;
+
+	    // Clear linked list
+		while (!uniqueErrorsList.isEmpty())
+	        uniqueErrorsList.removeFirst();
 
 	    // Iterate over all data lines and find errors, add to array
  		listIt = dataList.listIterator();
@@ -181,7 +188,8 @@ public class SensorData
      * @param user_selection The users selected sort option from the combobox.
      * @param list The linked list to sort.
      */
-    public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts) {
+    public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts) 
+    {
 		if (user_selection.equals(sorts[0]))
 			Collections.sort(list, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
 
@@ -199,7 +207,8 @@ public class SensorData
 	 * Returns the name of the file opened.
 	 * @return The opened file as a string.
 	 */
-	public String getFileName() {
+	public String getFileName() 
+	{
 		return ("Currently Using File: \"" + selectedFile.getName() + "\"");
 	}
 
@@ -207,15 +216,66 @@ public class SensorData
 	 * Method to return the total number of records in the file.
 	 * @return The number of records as an integer.
 	 */
-	public int getNoOfRecords() {
+	public int getNoOfRecords() 
+	{
 		return dataList.size();
+	}
+
+	/**
+	 * Method to return the minimum sensor value found from the CSV file.
+	 * @return The minimum sensor value.
+	 */
+	public int getMinVal(int low, int high)
+	{
+		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getSensorData().toString().substring(low,high).compareTo(data_2.getSensorData().toString().substring(low,high)));
+		int minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(0,2), 16);
+		return minVal;
+	}
+
+	/**
+	 * Method to return the maximum sensor value found from the CSV file.
+	 * @return The maximum sensor value.
+	 */
+	public int getMaxVal(int low, int high)
+	{
+		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getSensorData().toString().substring(low,high).compareTo(data_1.getSensorData().toString().substring(low,high)));
+		int maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(0,2), 16);
+		return maxVal;
+	}
+
+	/**
+	 * Method to return the average sensor value found from the CSV file.
+	 * @return The average sensor value.
+	 */
+	public int getAvgVal(int low, int high)
+	{
+		int noOfSensors = getNoOfRecords();
+		int runningTotal = 0;
+
+		// Iterate over all data lines and add sensor value to running total
+ 		listIt = dataList.listIterator();
+
+		while (listIt.hasNext()) {
+			nextData = listIt.next();
+			try {
+				runningTotal += Integer.parseInt(nextData.getSensorData().substring(low,high), 16);
+			}
+			catch (NumberFormatException e) {
+				continue;
+			}
+
+		}
+
+		int avgVal = runningTotal/noOfSensors;
+		return avgVal;
 	}
 
 	/**
 	 * Method to return a linked list of all the data lines present in the CSV input file for use in output table.
 	 * @return The linked list of data lines.
 	 */
-	public LinkedList<DataLine> getAllData() {
+	public LinkedList<DataLine> getAllData() 
+	{
 		return dataList;
 	}
 
@@ -225,7 +285,8 @@ public class SensorData
 	 * @param s The number of seconds to add to the date.
 	 * @return The date as a string in a human-readable form.
 	 */
-	private String addSecondsToDate(int s) {
+	private String addSecondsToDate(int s) 
+	{
         cal = new GregorianCalendar(2000,00,01,0,0,0);
         cal.add(Calendar.SECOND, s);
         return (dateFormat.format(cal.getTime()));

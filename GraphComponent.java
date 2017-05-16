@@ -13,7 +13,9 @@ public class GraphComponent extends JPanel
 {
     // Linked list to store sensor data and iterator to iterate over the linked list
     private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
+    private LinkedList<Integer> flaggedDataPoints = new LinkedList<Integer>();
     private ListIterator<Integer> listIt;
+    private ListIterator<Integer> listItFlagged;
     private LinkedList<String> datePoints = new LinkedList<String>();
     private ListIterator<String> listItDates;
     private String title_details;
@@ -27,6 +29,7 @@ public class GraphComponent extends JPanel
     private double xPos;
     private double yPos;
     private int sensorPoint;
+    private int flaggedPoint;
     private String datePoint;
     private int inc;
     private double initXPos;
@@ -96,19 +99,25 @@ public class GraphComponent extends JPanel
 
 		// Data points - iterate over all data points and mark data points with red ellipses
         inc = 0;
-        g2.setPaint(Color.red);
         listIt = sensorPoints.listIterator();
+        listItFlagged = flaggedDataPoints.listIterator();
 
         while (listIt.hasNext())
         {
             sensorPoint = listIt.next();
+            flaggedPoint = listItFlagged.next();
+
+            // Fail
+            if (flaggedPoint == 0)
+            	g2.setPaint(Color.RED);
+            else
+            	g2.setPaint(Color.BLACK);
 
             xPos = pad*2 + inc*xInc;
             yPos = height - pad - scale*sensorPoint;
 
             if (scatter)
             {
-            	g2.setPaint(Color.BLACK);
             	g2.setFont(new Font("Verdana", Font.PLAIN, 7));
             	g2.drawString("x", (int) (xPos-2), (int) (yPos-2));
             }
@@ -156,10 +165,11 @@ public class GraphComponent extends JPanel
      * @param datePoints The linked list of date strings to plot on the X axis.
      * @param device_address The string address of the device for which data is being plotted.
      */
-    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, String title_details, boolean dashed, boolean scatter)
+    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, boolean dashed, boolean scatter)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
+        this.flaggedDataPoints = flaggedDataPoints;
         this.title_details = title_details;
         this.dashed = dashed;
         this.scatter = scatter;
