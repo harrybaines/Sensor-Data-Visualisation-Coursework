@@ -139,10 +139,13 @@ public class GraphComponent extends JPanel
             }
             else if (bar)
             {
-            	g2.setPaint(new Color(31, 194, 226));
-
             	if (inc != 0 && inc != sensorPoints.size()) {
 	            	int distToXAxis = (int) (height - pad  - yPos);
+	            	if (flaggedPoint == 0)
+	            		g2.setPaint(Color.RED);
+	            	else 
+	            		g2.setPaint(new Color(31, 194, 226));
+
 	        		g2.fillRect((int)(xPos-(barWidth-1)), (int)(yPos), barWidth, (int) (distToXAxis));
 	        		g.setColor(Color.BLACK);
 					g.drawRect((int)(xPos-(barWidth-1)), (int)(yPos), barWidth, (int) (distToXAxis));

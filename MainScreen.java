@@ -62,6 +62,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel errorsLbl;
     private JLabel percentLbl;
     private JLabel devicesFoundNoLbl;
+    private JLabel firstDateReadingLbl;
+    private JLabel firstDateLbl;
+    private JLabel recentReadingDateLbl;
+    private JLabel recentReadingLbl;
 
     private JButton openFileBtn;
     private JButton exportBtn;
@@ -103,7 +107,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // Sort panel components
     private JLabel sortLbl;
-    private String[] sorts = {"Time since last seen (DESC)", "Time since last seen (ASC)", "Number of errors found", "Messages missed by receiver"};
+    private String[] sorts = {"Time since last seen (DESC)", "Time since last seen (ASC)", "Status Codes", "Messages missed by receiver"};
     private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
     private JButton applySortBtn;
 
@@ -196,9 +200,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         basicDataLbl = new JLabel("Data Summary:");
         basicDataLbl.setHorizontalAlignment(SwingConstants.CENTER);
         basicDataLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
-        basicDataLbl.setForeground(Color.BLACK);
+        basicDataLbl.setForeground(Color.BLUE);
         c.gridy = 4;
-        c.insets = new Insets(200,0,0,0);
+        c.insets = new Insets(100,0,0,0);
         topHomePanel.add(basicDataLbl, c);
      	
         noOfLinesLbl = new JLabel("Number Of Lines");
@@ -210,9 +214,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.ipady = 5;
         c.gridy = 0;
         c.gridx = 0;
-        c.weighty = 0.5;
-        c.weightx = 0.5;
-        c.insets = new Insets(0,5,300,5);
+        c.weighty = 0.1;
+        c.weightx = 0.1;
+        c.insets = new Insets(0,5,100,5);
         midHomePanel.add(noOfLinesLbl, c);
 
         noOfErrorsLbl = new JLabel("Number Of Errors");
@@ -235,9 +239,25 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         devicesFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
         devicesFoundLbl.setFont(new Font("Helvetica", Font.ITALIC, 20));
         devicesFoundLbl.setForeground(Color.BLUE);
-        c.gridx = 3;        
-        c.gridy = 0;
+        c.gridx = 0;        
+        c.gridy = 2;
         midHomePanel.add(devicesFoundLbl, c);
+
+        firstDateReadingLbl = new JLabel("First Reading");
+        firstDateReadingLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        firstDateReadingLbl.setFont(new Font("Helvetica", Font.ITALIC, 20));
+        firstDateReadingLbl.setForeground(Color.BLUE);
+        c.gridx = 1;        
+        c.gridy = 2;
+        midHomePanel.add(firstDateReadingLbl, c);
+
+        recentReadingDateLbl = new JLabel("Most Recent Reading");
+        recentReadingDateLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        recentReadingDateLbl.setFont(new Font("Helvetica", Font.ITALIC, 20));
+        recentReadingDateLbl.setForeground(Color.BLUE);
+        c.gridx = 2;        
+        c.gridy = 2;
+        midHomePanel.add(recentReadingDateLbl, c);
 
         linesLbl = new JLabel("0");
         linesLbl.setHorizontalAlignment(SwingConstants.CENTER);
@@ -245,7 +265,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         linesLbl.setForeground(Color.BLACK);
         c.gridx = 0;
         c.gridy = 1;        
-        c.insets = new Insets(5,0,200,0);
+        c.insets = new Insets(5,0,10,0);
         midHomePanel.add(linesLbl, c);
 
         errorsLbl = new JLabel("0");
@@ -268,9 +288,25 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         devicesFoundNoLbl.setHorizontalAlignment(SwingConstants.CENTER);
         devicesFoundNoLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
         devicesFoundNoLbl.setForeground(Color.BLACK);
-        c.gridx = 3;        
-        c.gridy = 1;
+        c.gridx = 0;        
+        c.gridy = 3;
         midHomePanel.add(devicesFoundNoLbl, c);
+
+        firstDateLbl = new JLabel("-");
+        firstDateLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        firstDateLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        firstDateLbl.setForeground(Color.BLACK);
+        c.gridx = 1;        
+        c.gridy = 3;
+        midHomePanel.add(firstDateLbl, c);
+
+        recentReadingLbl = new JLabel("-");
+        recentReadingLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        recentReadingLbl.setFont(new Font("Helvetica", Font.BOLD, 20));
+        recentReadingLbl.setForeground(Color.BLACK);
+        c.gridx = 2;        
+        c.gridy = 3;
+        midHomePanel.add(recentReadingLbl, c);
 
         // Home panel - bottom
         openFileBtn = new JButton("Open CSV File");
@@ -516,6 +552,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 percentLbl.setText(String.format("%.2f", errorValue) + "%");
 
                 devicesFoundNoLbl.setText(Integer.toString(data.findNoOfUniqueDevices()));
+                firstDateLbl.setText(data.findFirstDate());
+                recentReadingLbl.setText(data.findRecentDate());
 
                 // Reset table with old data
                 populateTableData();

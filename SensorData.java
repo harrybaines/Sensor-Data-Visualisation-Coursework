@@ -196,6 +196,16 @@ public class SensorData
 	}
 
 	/**
+	 * Method to return the first date a sensor device picked up.
+	 * @return A string of the first date.
+	 */
+	public String findFirstDate()
+	{
+		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
+		return dataList.get(0).getDateObtained();
+	}
+
+	/**
 	 * Method to find the total number of unique devices from the CSV file.
 	 * @return The total number of unique devices.
 	 */
@@ -220,6 +230,16 @@ public class SensorData
         }
 
 		return noOfDevices;
+	}
+
+	/**
+	 * Method to return the most recent date a sensor device reading was picked up.
+	 * @return A string of the most recent date.
+	 */
+	public String findRecentDate()
+	{
+		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
+		return dataList.get(0).getDateObtained();
 	}
 
 	/**
