@@ -87,6 +87,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private DataLine deviceToAdd; 
 
     // Info pop up panel variables
+    private JFrame infoWindow;
     private JPanel mainInfoPanel;
     private JPanel topInfoPanel;
     private JPanel midInfoPanel;
@@ -98,6 +99,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private int sensorDecValue;
     private String sensorHexValue;
     private JLabel notesDetailsLbl;
+    private JButton quitInfoBtn;
 
     // Sort panel components
     private JLabel sortLbl;
@@ -107,7 +109,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // Visualise panel components
     private JLabel visualiseAsLbl;
-    private String[] visuals = {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Timeline"};
+    private String[] visuals = {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Scatter Graph (JOINED)", "Bar Graph", "Bar Graph (DASHED)"};
     private JComboBox<String> visOpts = new JComboBox<String>(visuals);
     private JButton applyVisBtn;
     private String[] plots = {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
@@ -229,7 +231,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridy = 0;
         midHomePanel.add(percentErrorLbl, c);
 
-        devicesFoundLbl = new JLabel("Devices Found");
+        devicesFoundLbl = new JLabel("Unique Devices Found");
         devicesFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
         devicesFoundLbl.setFont(new Font("Helvetica", Font.ITALIC, 20));
         devicesFoundLbl.setForeground(Color.BLUE);
@@ -339,7 +341,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topSensPanel.add(searchSensBut, c);
 
         resultsFoundLbl = new JLabel("No Results Found");
-        resultsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 16));
+        resultsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         resultsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
         midSensPanel.add("North", resultsFoundLbl);
 
@@ -364,7 +366,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Sensors panel - sort section
         sortLbl = new JLabel("Sort Sensors By:");
         sortLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        sortLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        sortLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         sortLbl.setForeground(new Color(9, 137, 11));
 
         applySortBtn = new JButton("Apply");
@@ -385,7 +387,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         plotOptLbl = new JLabel("Choose Graph Detail:");
         plotOptLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        plotOptLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+        plotOptLbl.setFont(new Font("Helvetica", Font.BOLD, 16));
         plotOptLbl.setForeground(new Color(9, 137, 11));
 
         botVisPanel.add(visualiseAsLbl);
@@ -513,6 +515,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 				errorValue = (double) (((errorsArray[0] / (double) data.getNoOfRecords()) * 100));
                 percentLbl.setText(String.format("%.2f", errorValue) + "%");
 
+                devicesFoundNoLbl.setText(Integer.toString(data.findNoOfUniqueDevices()));
+
                 // Reset table with old data
                 populateTableData();
             }
@@ -563,6 +567,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             saveToFile(midStatPanel);
         }
 
+        // Check for close button on the info pop up window
+        else if (e.getSource() == quitInfoBtn) {
+        	infoWindow.dispose();
+        }
+
         // Check for export button click on graph panels
         else {
             for (int i = 0; i < exportBtns.length; i++)
@@ -585,16 +594,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // Create flagged list
         flaggedDataPoints = new LinkedList<Integer>();
 
-		// while (!flaggedDataPoints.isEmpty())
-	 //        flaggedDataPoints.removeFirst();
-
-
         // Check if devices found has fewer than 6 dates, if so use all dates to fill up space
         if (devicesFound.size() < 6)
             JOptionPane.showMessageDialog(new JFrame(), "Insufficient data to plot. 6 or more devices are required to plot the graphs.", "Error", JOptionPane.ERROR_MESSAGE);   
         else {   
-        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]))
-                JOptionPane.showMessageDialog(new JFrame(), "Error - scatter graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
+        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]) || ((visOpts.getSelectedItem().equals(visuals[4]) || visOpts.getSelectedItem().equals(visuals[5]))) && plotOpts.getSelectedItem().equals(plots[0]))
+                JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
             else {
                 sensInc = 1;
 
@@ -677,16 +682,22 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
 	                        // Add new graph type component to new panel
 	                        if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, false, false));
 
 	                        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, false, false));
 
 	                        else if (visOpts.getSelectedItem().equals("Scatter Graph"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, true));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, true, false));
 
-	                        else if (visOpts.getSelectedItem().equals("Timeline"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, true));
+	                        else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)"))
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, true, false));
+
+							else if (visOpts.getSelectedItem().equals("Bar Graph"))
+								graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, false, true));
+							
+							else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)"))
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, false, true));
 
 	                        // Add new panel to tab pane 
 	                        graphTabPane.add(sensorString, graphPanels[i-1]);
@@ -765,7 +776,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         sensorPoints.add(sensorValue);
 
         if (!(deviceToCheck.getStatus().equals("0") || deviceToCheck.getStatus().equals("00"))) {
-        	flaggedDataPoints.add(0); //flagged (fail?)
+        	flaggedDataPoints.add(0); //flagged ("fail")
         }
         else {
         	flaggedDataPoints.add(1); //success
@@ -784,13 +795,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     private void displayInfoScreen() 
     {    	
-        window = new JFrame();
+        infoWindow = new JFrame();
         mainInfoPanel = new JPanel(new BorderLayout());
         topInfoPanel = new JPanel();
-        midInfoPanel = new JPanel(new GridLayout(9,2));
+        midInfoPanel = new JPanel(new GridLayout(10,2));
         midInfoPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
         botInfoPanel = new JPanel(new BorderLayout());
-        botInfoPanel.setBorder(new EmptyBorder(10, 20, 60, 20));
+        botInfoPanel.setBorder(new EmptyBorder(5, 20, 20, 20));
 
         infoTitle = new JLabel("Data Information");
         infoTitle.setHorizontalAlignment(SwingConstants.CENTER);
@@ -855,17 +866,21 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         scrollPane = new JScrollPane(infoTable);
         botInfoPanel.add("Center", scrollPane);
 
+        quitInfoBtn = new JButton("Close");
+        quitInfoBtn.addActionListener(this);
+        botInfoPanel.add("South", quitInfoBtn);
+
         mainInfoPanel.add("North", topInfoPanel);
         mainInfoPanel.add("Center", midInfoPanel);
         mainInfoPanel.add("South", botInfoPanel);
 
-        window.add(mainInfoPanel);
-        window.setTitle("Sensor Data Information");
-        window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        window.setLocation(100,100);
-        window.setSize(720, 700);
-        window.setResizable(false);
-        window.setVisible(true);
+        infoWindow.add(mainInfoPanel);
+        infoWindow.setTitle("Sensor Data Information");
+        infoWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        infoWindow.setLocation(100,100);
+        infoWindow.setSize(720, 700);
+        infoWindow.setResizable(false);
+        infoWindow.setVisible(true);
     }
 
     /**

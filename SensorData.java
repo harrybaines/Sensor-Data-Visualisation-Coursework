@@ -121,11 +121,23 @@ public class SensorData
 	    // Iterate over data lines - search for device, add to linked list
  		listIt = dataList.listIterator();
 
+ 		DataLine deviceToAdd = listIt.next();
+
+        int currentTime = deviceToAdd.getTime();
+
         while (listIt.hasNext()) {
+
         	nextData = listIt.next();
-        	if (nextData.getAddress().equals(address))
+
+        	int nextTime = nextData.getTime();
+
+        	if (nextData.getAddress().equals(address) && nextTime != currentTime) {
         		devicesFound.add(nextData);
+        		currentTime = nextTime;
+        	}
         }
+
+		Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
 		return devicesFound;
 	}
 
@@ -181,6 +193,33 @@ public class SensorData
         }
         
 		return errorsArray;
+	}
+
+	/**
+	 * Method to find the total number of unique devices from the CSV file.
+	 * @return The total number of unique devices.
+	 */
+	public int findNoOfUniqueDevices()
+	{
+		int noOfDevices = 0;
+		String currentDeviceAddress;
+		String nextAddress;
+        Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
+
+        listIt = dataList.listIterator();
+
+       	currentDeviceAddress = listIt.next().getAddress();
+
+        while (listIt.hasNext()) {
+        	nextAddress = listIt.next().getAddress();
+
+        	if (!(nextAddress.equals(currentDeviceAddress))) {
+        		noOfDevices++;
+        		currentDeviceAddress = nextAddress;
+        	}
+        }
+
+		return noOfDevices;
 	}
 
 	/**

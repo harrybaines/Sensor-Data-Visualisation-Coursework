@@ -24,6 +24,7 @@ public class GraphComponent extends JPanel
     private final int pad = 40;
     private double xInc;
     private double scale;
+    private int barWidth;
     private int width;
     private int height;
     private double xPos;
@@ -37,6 +38,8 @@ public class GraphComponent extends JPanel
     private double dateInc;
     private boolean dashed;
     private boolean scatter;
+    private boolean bar;
+    private final int[] barWidths = {28, 14, 5};
 
     /**
      * Method to paint a scatter graph component on the UI.
@@ -61,6 +64,14 @@ public class GraphComponent extends JPanel
         // Scale: padding - maximum point value
         scale = (double) (height - 2*pad) / 300;
 
+        // Bar width size - low/mid/high frequency plots
+        if (sensorPoints.size() == 51)
+        	barWidth = barWidths[0];
+        else if (sensorPoints.size() == 101)
+        	barWidth = barWidths[1];
+        else if (sensorPoints.size() == 251)
+        	barWidth = barWidths[2];
+
         // Axis lines
         g2.draw(new Line2D.Double(pad*2, pad, pad*2, height-pad));
         g2.draw(new Line2D.Double(pad*2, height-pad, width-pad*2, height-pad));
@@ -72,6 +83,8 @@ public class GraphComponent extends JPanel
         // Title label
 		g2.setFont(new Font("Verdana", Font.PLAIN, 22)); 
         g2.drawString(title_details, (width/2) - 200, 30);
+        g2.setFont(new Font("Verdana", Font.ITALIC, 13));
+        g2.drawString("Blue = SUCCESS, Red = ERRORS FOUND", (width/2) - 135, 60);
 
         // Y axis labels and dashed lines (if applicable)
         g2.setFont(new Font("Verdana", Font.PLAIN, 18)); 
@@ -80,7 +93,7 @@ public class GraphComponent extends JPanel
             g2.drawString(Integer.toString(i*50), pad, (height - pad - (int)(i*scale*50)) + 5);
 
             // Draw dashed lines on graph if selected
-            if (dashed)
+            if (dashed && !scatter)
             {
             	drawDashedLine(g2, 2*pad, (height - pad - (int)(i*scale*50)), width - 2*pad, height - pad - (int)(i*scale*50));
                 drawDashedLine(g2, (int) (2*pad) + (i*dateInc*2), getHeight() - pad, (int) (2*pad) + (i*dateInc*2), pad);
@@ -107,11 +120,11 @@ public class GraphComponent extends JPanel
             sensorPoint = listIt.next();
             flaggedPoint = listItFlagged.next();
 
-            // Fail
+            // Check for fail - red = fail, blue = success
             if (flaggedPoint == 0)
             	g2.setPaint(Color.RED);
             else
-            	g2.setPaint(Color.BLACK);
+            	g2.setPaint(Color.BLUE);
 
             xPos = pad*2 + inc*xInc;
             yPos = height - pad - scale*sensorPoint;
@@ -119,7 +132,21 @@ public class GraphComponent extends JPanel
             if (scatter)
             {
             	g2.setFont(new Font("Verdana", Font.PLAIN, 7));
-            	g2.drawString("x", (int) (xPos-2), (int) (yPos-2));
+            	g2.drawString("x", (int) (xPos-2), (int) (yPos+2));
+
+            	if (dashed && inc != 0)
+        			g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
+            }
+            else if (bar)
+            {
+            	g2.setPaint(new Color(31, 194, 226));
+
+            	if (inc != 0 && inc != sensorPoints.size()) {
+	            	int distToXAxis = (int) (height - pad  - yPos);
+	        		g2.fillRect((int)(xPos-(barWidth-1)), (int)(yPos), barWidth, (int) (distToXAxis));
+	        		g.setColor(Color.BLACK);
+					g.drawRect((int)(xPos-(barWidth-1)), (int)(yPos), barWidth, (int) (distToXAxis));
+	        	}
             }
             else
             	if (inc != 0)
@@ -138,7 +165,7 @@ public class GraphComponent extends JPanel
         while (listItDates.hasNext())
         {
             datePoint = listItDates.next();
-            g2.drawString(datePoint, (int) ((pad-20) + (inc*dateInc*2)), getHeight() - 20);
+            g2.drawString(datePoint, (int) ((pad-20) + (inc*dateInc*2)), height - 20);
             inc++;
         }
     }
@@ -165,7 +192,7 @@ public class GraphComponent extends JPanel
      * @param datePoints The linked list of date strings to plot on the X axis.
      * @param device_address The string address of the device for which data is being plotted.
      */
-    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, boolean dashed, boolean scatter)
+    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, boolean dashed, boolean scatter, boolean bar)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
@@ -173,5 +200,6 @@ public class GraphComponent extends JPanel
         this.title_details = title_details;
         this.dashed = dashed;
         this.scatter = scatter;
+        this.bar = bar;
     }
 }
