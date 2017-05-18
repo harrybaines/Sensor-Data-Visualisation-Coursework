@@ -74,6 +74,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     // SENSORS panel components
     private JLabel addressLbl;
     private JTextField addressEntry;
+    private JButton showAllSensorsBtn;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
     private JLabel plotOptLbl;
@@ -89,6 +90,18 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JScrollPane scrollPane;
     private ListIterator<DataLine> listIt;
     private DataLine deviceToAdd; 
+
+    // Sensor pop up window components + variables
+    private JFrame sensorWindow;
+    private JPanel mainSensorPopPanel;
+    private JPanel topSensorPopPanel;
+    private JPanel midSensorPopPanel;
+    private JPanel botSensorPopPanel;
+    private JLabel sensorPopLbl;
+    private final String[] allSensorsNames = {"Sensor Address", "Number of Sensor Readings", "Error Count"};
+    private JTable sensorsTable;
+    private DefaultTableModel sensorsTableModel;
+    private LinkedList<DataLine> allSensorDevices = new LinkedList<DataLine>();
 
     // Info pop up panel variables
     private JFrame infoWindow;
@@ -328,16 +341,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         sensorPanel = new JPanel(new BorderLayout());
         topSensPanel = new JPanel(new GridBagLayout());
         midSensPanel = new JPanel(new BorderLayout(10,10));
-        midSensPanel.setBorder(new EmptyBorder(50,20,20,20));
+        midSensPanel.setBorder(new EmptyBorder(40,20,20,20));
         botSensPanel = new JPanel(new BorderLayout());
-
-        // Sensors panel - bottom
-        botSortPanel = new JPanel(new GridLayout(4,1,10,10));
-        botSortPanel.setBorder(new EmptyBorder(5,20,20,20));
-        botVisPanel = new JPanel(new GridLayout(5,1,20,20));
-        botSensPanel.add("West", botSortPanel);
-        botSensPanel.add("East", botVisPanel);
-        botSensPanel.setBorder(new EmptyBorder(20,20,20,20));
 
         // Add panels to sensors  
         sensorPanel.add("North", topSensPanel);
@@ -379,7 +384,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         resultsFoundLbl = new JLabel("No Results Found");
         resultsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         resultsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        midSensPanel.add("North", resultsFoundLbl);
+        midSensPanel.add("Center", resultsFoundLbl);
 
         // Sensors panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
@@ -399,6 +404,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
 
+		// Sensors panel - bottom
+        botSortPanel = new JPanel(new GridLayout(4,1,10,10));
+        botSortPanel.setBorder(new EmptyBorder(6,20,20,20));
+        botVisPanel = new JPanel(new GridLayout(5,1,20,20));
+        botSensPanel.add("West", botSortPanel);
+        botSensPanel.add("East", botVisPanel);
+        botSensPanel.setBorder(new EmptyBorder(20,20,20,20));
+
         // Sensors panel - sort section
         sortLbl = new JLabel("Sort Sensors By:");
         sortLbl.setHorizontalAlignment(SwingConstants.CENTER);
@@ -408,9 +421,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         applySortBtn = new JButton("Apply");
         applySortBtn.addActionListener(this);
 
+        showAllSensorsBtn = new JButton("Show All Sensors");
+        showAllSensorsBtn.addActionListener(this);
+        showAllSensorsBtn.setHorizontalAlignment(SwingConstants.CENTER);
+
         botSortPanel.add(sortLbl);
         botSortPanel.add(sortOpts);
         botSortPanel.add(applySortBtn);
+        botSortPanel.add(showAllSensorsBtn);
 
         // Sensors panel - visualise panel
         visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
@@ -564,6 +582,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             System.exit(0);
         }
 
+        else if (e.getSource() == showAllSensorsBtn) {
+        	showSensorsWindow();
+        }
+
         // Search for device by address
         else if (e.getSource() == searchSensBut) {
             // Re-populate table with data from user input device address and populate date comboboxes
@@ -616,6 +638,87 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 if (e.getSource() == exportBtns[i])
                     saveToFile(graphPanels[i]);
         }    
+    }
+
+    /**
+     * Method to show the sensors pop up window once pressed on the sensors screen.
+     */
+    private void showSensorsWindow()
+    {
+    	sensorWindow = new JFrame();
+        mainSensorPopPanel = new JPanel(new BorderLayout());
+        topSensorPopPanel = new JPanel();
+        midSensorPopPanel = new JPanel(new GridLayout(10,2));
+        midSensorPopPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
+        botSensorPopPanel = new JPanel(new BorderLayout());
+        botSensorPopPanel.setBorder(new EmptyBorder(5, 20, 20, 20));
+
+        mainSensorPopPanel.add("North", topSensorPopPanel);
+        mainSensorPopPanel.add("Center", midSensorPopPanel);
+        mainSensorPopPanel.add("South", botSensorPopPanel);
+
+        sensorPopLbl = new JLabel("View All Sensors");
+        sensorPopLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        sensorPopLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
+        sensorPopLbl.setForeground(new Color(9, 137, 11));
+        topSensorPopPanel.add(sensorPopLbl);
+
+		// Clear table contents
+        sensorsTableModel = new DefaultTableModel(allSensorsNames, 0);
+        sensorsTable = new JTable(sensorsTableModel) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        sensorsTableModel = (DefaultTableModel) sensorsTable.getModel();
+        sensorsTableModel.getDataVector().removeAllElements();
+        sensorsTableModel.fireTableDataChanged();
+        sensorsTable.setRowHeight(20);
+
+        scrollPane = new JScrollPane(sensorsTable);
+        botSensorPopPanel.add("Center", scrollPane);
+
+        // Clear table contents
+   	 	tableModel = (DefaultTableModel) sensorsTable.getModel();
+   	 	tableModel.getDataVector().removeAllElements();
+   		tableModel.fireTableDataChanged();
+        
+        // If user has searched for data, display that, otherwise show all
+        allSensorDevices = data.findAllDevices();
+
+        // Iterate over linked list and add to output
+        listIt = allSensorDevices.listIterator();
+
+        while (listIt.hasNext()) {
+            // Obtain next device properties
+            deviceToAdd = listIt.next();
+
+            // Store properties from data line
+            Object[] dataToAdd = {
+                deviceToAdd.getAddress(), 
+                deviceToAdd.getStatus(), 
+                deviceToAdd.getSensorData(), 
+            };
+                
+            // Add row to table
+            tableModel.addRow(dataToAdd);
+        }
+
+        // Results found data
+        if (allSensorDevices.size() == 0)
+            resultsFoundLbl.setText("No Results Found");
+        else
+            resultsFoundLbl.setText("Results Found: " + allSensorDevices.size());
+
+
+		sensorWindow.add(mainSensorPopPanel);
+        sensorWindow.setTitle("Sensors");
+        sensorWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        sensorWindow.setLocation(100,100);
+        sensorWindow.setSize(600, 700);
+        sensorWindow.setResizable(false);
+        sensorWindow.setVisible(true);
+
     }
 
     /**

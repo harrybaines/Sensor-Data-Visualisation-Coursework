@@ -190,6 +190,9 @@ public class SensorData
 	    			currentStatus = nextStatus;
 	    		}
 	    	}
+
+	    	// Increase by 1 to ensure if only 1 error is present, then 1 unique error will be present
+	    	errorsArray[1]++;
         }
         
 		return errorsArray;
@@ -230,6 +233,34 @@ public class SensorData
         }
 
 		return noOfDevices;
+	}
+
+	/**
+	 * Method to find all the devices from the CSV file and return the linked list of all the unique devices.
+	 * @return The linked list of devices.
+	 */
+	public LinkedList<DataLine> findAllDevices()
+	{
+		LinkedList<DataLine> allDevices = new LinkedList<DataLine>();
+        Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
+
+		listIt = dataList.listIterator();
+
+       	DataLine currentDeviceAddress = listIt.next();
+       	DataLine nextAddress;
+       	int noOfDevices = 0;
+
+        while (listIt.hasNext()) {
+        	nextAddress = listIt.next();
+
+        	if (!(nextAddress.getAddress().equals(currentDeviceAddress.getAddress()))) {
+        		noOfDevices++;
+        		currentDeviceAddress = nextAddress;
+        		allDevices.add(nextAddress);
+        	}
+        }
+
+        return allDevices;
 	}
 
 	/**
