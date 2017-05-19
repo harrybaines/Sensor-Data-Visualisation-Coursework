@@ -133,10 +133,12 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JTabbedPane graphTabPane;
     private int sensInc;
     private String sensorString;
+    private JButton[] eventBtns = new JButton[10];
     private JButton[] exportBtns = new JButton[10];
     private JPanel[] graphPanels = new JPanel[10];
     private JFileChooser selectDest;
     private BufferedImage img;
+    private JButton eventsBtn;
 
     // STATISTICS panel components
     private JLabel statsLbl; 
@@ -614,11 +616,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         	infoWindow.dispose();
         }
 
-        // Check for export button click on graph panels
+        // Check for event/export button click on graph panels
         else {
             for (int i = 0; i < exportBtns.length; i++)
                 if (e.getSource() == exportBtns[i])
                     saveToFile(graphPanels[i]);
+                else if (e.getSource() == eventBtns[i])
+        			showEventsWindow(i);
         }    
     }
 
@@ -640,8 +644,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         if (devicesFound.size() < 6)
             JOptionPane.showMessageDialog(new JFrame(), "Insufficient data to plot. 6 or more devices are required to plot the graphs.", "Error", JOptionPane.ERROR_MESSAGE);   
         else {   
-        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]) || ((visOpts.getSelectedItem().equals(visuals[4]) || visOpts.getSelectedItem().equals(visuals[5]))) && plotOpts.getSelectedItem().equals(plots[0]))
+        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]) 
+        		|| ((visOpts.getSelectedItem().equals(visuals[4]) || visOpts.getSelectedItem().equals(visuals[5]))) && plotOpts.getSelectedItem().equals(plots[0]))
+                
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
+            
             else {
                 sensInc = 1;
 
@@ -729,31 +736,37 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     						Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
 
 	                        // Add new graph type component to new panel
-	                        if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
+	                        if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph")) 
 	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, false));
-
-	                        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
+	                        
+	                        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)")) 
 	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, false));
 
-	                        else if (visOpts.getSelectedItem().equals("Scatter Graph"))
+	                        else if (visOpts.getSelectedItem().equals("Scatter Graph")) 
 	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, true, false));
 
-	                        else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)"))
+	                        else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)")) 
 	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, true, false));
 
-							else if (visOpts.getSelectedItem().equals("Bar Graph"))
+							else if (visOpts.getSelectedItem().equals("Bar Graph")) 
 								graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, true));
 							
-							else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)"))
+							else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)")) 
 	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, true));
+							
 
 	                        // Add new panel to tab pane 
 	                        graphTabPane.add(sensorString, graphPanels[i-1]);
 
-	                        // Add new export button to each panel
+	                        // Add new event/export button to each panel
+	                        eventBtns[i-1] = new JButton("View Events");
+	                        eventBtns[i-1].addActionListener(this);
+	                        graphPanels[i-1].add("North", eventBtns[i-1]);
+
 	                        exportBtns[i-1] = new JButton("Save To File");
 	                        exportBtns[i-1].addActionListener(this);
 	                        graphPanels[i-1].add("South", exportBtns[i-1]); 
+
 	                    }
 
 	                    // Increase sensor value to extract particular points from data string
@@ -770,6 +783,18 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 graphWindow.setResizable(false); 
             } 
         }
+    }
+
+    /**
+     * Method to display the events window displaying meanings behind data provided from the CSV file.
+     */
+    private void showEventsWindow(int panelIndex)
+    {
+
+    	System.out.println("Button " + panelIndex+1 + " was pressed on panel " + graphPanels[panelIndex]);
+
+
+
     }
 
     /**

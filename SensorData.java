@@ -347,8 +347,14 @@ public class SensorData
 	 */
 	public int getMinVal(int low, int high)
 	{
+		int minVal = 0;
 		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getSensorData().toString().substring(low,high).compareTo(data_2.getSensorData().toString().substring(low,high)));
-		int minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
+		try {
+			minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
+		}
+		catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+		}
 		return minVal;
 	}
 
@@ -358,8 +364,14 @@ public class SensorData
 	 */
 	public int getMaxVal(int low, int high)
 	{
+		int maxVal = 0;
 		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getSensorData().toString().substring(low,high).compareTo(data_1.getSensorData().toString().substring(low,high)));
-		int maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
+		try {
+			maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
+		}
+		catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+		}
 		return maxVal;
 	}
 
