@@ -74,7 +74,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     // SENSORS panel components
     private JLabel addressLbl;
     private JTextField addressEntry;
-    private JButton showAllSensorsBtn;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
     private JLabel plotOptLbl;
@@ -90,18 +89,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JScrollPane scrollPane;
     private ListIterator<DataLine> listIt;
     private DataLine deviceToAdd; 
-
-    // Sensor pop up window components + variables
-    private JFrame sensorWindow;
-    private JPanel mainSensorPopPanel;
-    private JPanel topSensorPopPanel;
-    private JPanel midSensorPopPanel;
-    private JPanel botSensorPopPanel;
-    private JLabel sensorPopLbl;
-    private final String[] allSensorsNames = {"Sensor Address", "Number of Sensor Readings", "Error Count"};
-    private JTable sensorsTable;
-    private DefaultTableModel sensorsTableModel;
-    private LinkedList<DataLine> allSensorDevices = new LinkedList<DataLine>();
 
     // Info pop up panel variables
     private JFrame infoWindow;
@@ -384,7 +371,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         resultsFoundLbl = new JLabel("No Results Found");
         resultsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         resultsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        midSensPanel.add("Center", resultsFoundLbl);
+        midSensPanel.add("North", resultsFoundLbl);
 
         // Sensors panel - table components
         tableModel = new DefaultTableModel(columnNames, 0);
@@ -421,14 +408,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         applySortBtn = new JButton("Apply");
         applySortBtn.addActionListener(this);
 
-        showAllSensorsBtn = new JButton("Show All Sensors");
-        showAllSensorsBtn.addActionListener(this);
-        showAllSensorsBtn.setHorizontalAlignment(SwingConstants.CENTER);
-
         botSortPanel.add(sortLbl);
         botSortPanel.add(sortOpts);
         botSortPanel.add(applySortBtn);
-        botSortPanel.add(showAllSensorsBtn);
 
         // Sensors panel - visualise panel
         visualiseAsLbl = new JLabel("Visualise Sensor Data As: ");
@@ -573,17 +555,16 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 firstDateLbl.setText(data.findFirstDate());
                 recentReadingLbl.setText(data.findRecentDate());
 
-                // Reset table with old data
-                populateTableData();
+                // Reset table with containing data
+		   	 	tableModel = (DefaultTableModel) table.getModel();
+		   	 	tableModel.getDataVector().removeAllElements();
+		   		tableModel.fireTableDataChanged();
+		   		resultsFoundLbl.setText("No Results Found");
             }
         }
 
         else if (e.getSource() == quitBtn) {
             System.exit(0);
-        }
-
-        else if (e.getSource() == showAllSensorsBtn) {
-        	showSensorsWindow();
         }
 
         // Search for device by address
@@ -607,6 +588,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             selectedItem = visOpts.getSelectedItem().toString();
 
             // Ensure data is in ordered ascending form
+            populateTableData();
             data.sortData(sorts[1], devicesFound, sorts);
 
             if (devicesFound.size() == 0)
@@ -638,87 +620,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 if (e.getSource() == exportBtns[i])
                     saveToFile(graphPanels[i]);
         }    
-    }
-
-    /**
-     * Method to show the sensors pop up window once pressed on the sensors screen.
-     */
-    private void showSensorsWindow()
-    {
-    	sensorWindow = new JFrame();
-        mainSensorPopPanel = new JPanel(new BorderLayout());
-        topSensorPopPanel = new JPanel();
-        midSensorPopPanel = new JPanel(new GridLayout(10,2));
-        midSensorPopPanel.setBorder(new EmptyBorder(5, 10, 5, 10));
-        botSensorPopPanel = new JPanel(new BorderLayout());
-        botSensorPopPanel.setBorder(new EmptyBorder(5, 20, 20, 20));
-
-        mainSensorPopPanel.add("North", topSensorPopPanel);
-        mainSensorPopPanel.add("Center", midSensorPopPanel);
-        mainSensorPopPanel.add("South", botSensorPopPanel);
-
-        sensorPopLbl = new JLabel("View All Sensors");
-        sensorPopLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        sensorPopLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
-        sensorPopLbl.setForeground(new Color(9, 137, 11));
-        topSensorPopPanel.add(sensorPopLbl);
-
-		// Clear table contents
-        sensorsTableModel = new DefaultTableModel(allSensorsNames, 0);
-        sensorsTable = new JTable(sensorsTableModel) {
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        sensorsTableModel = (DefaultTableModel) sensorsTable.getModel();
-        sensorsTableModel.getDataVector().removeAllElements();
-        sensorsTableModel.fireTableDataChanged();
-        sensorsTable.setRowHeight(20);
-
-        scrollPane = new JScrollPane(sensorsTable);
-        botSensorPopPanel.add("Center", scrollPane);
-
-        // Clear table contents
-   	 	tableModel = (DefaultTableModel) sensorsTable.getModel();
-   	 	tableModel.getDataVector().removeAllElements();
-   		tableModel.fireTableDataChanged();
-        
-        // If user has searched for data, display that, otherwise show all
-        allSensorDevices = data.findAllDevices();
-
-        // Iterate over linked list and add to output
-        listIt = allSensorDevices.listIterator();
-
-        while (listIt.hasNext()) {
-            // Obtain next device properties
-            deviceToAdd = listIt.next();
-
-            // Store properties from data line
-            Object[] dataToAdd = {
-                deviceToAdd.getAddress(), 
-                deviceToAdd.getStatus(), 
-                deviceToAdd.getSensorData(), 
-            };
-                
-            // Add row to table
-            tableModel.addRow(dataToAdd);
-        }
-
-        // Results found data
-        if (allSensorDevices.size() == 0)
-            resultsFoundLbl.setText("No Results Found");
-        else
-            resultsFoundLbl.setText("Results Found: " + allSensorDevices.size());
-
-
-		sensorWindow.add(mainSensorPopPanel);
-        sensorWindow.setTitle("Sensors");
-        sensorWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        sensorWindow.setLocation(100,100);
-        sensorWindow.setSize(600, 700);
-        sensorWindow.setResizable(false);
-        sensorWindow.setVisible(true);
-
     }
 
     /**
@@ -818,27 +719,33 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 	                        graphTabPane.add(sensorString, graphPanels[i-1]);
 	                    }
 	                    else {
-	                       // Prepare title string for graph plotting
+	                        // Prepare title string for graph plotting
 	                        title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
+
+	                        // Get Max,Min,Avg data from the specific plot into a single string
+	                        String graphDetails = data.getGraphDetails(sensorPoints, sensInc-1, sensInc);
+
+	                        // Ensure devices found is sorted in ascending order
+    						Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
 
 	                        // Add new graph type component to new panel
 	                        if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, false, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, false));
 
 	                        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, false, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, false));
 
 	                        else if (visOpts.getSelectedItem().equals("Scatter Graph"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, true, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, true, false));
 
 	                        else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, true, false));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, true, false));
 
 							else if (visOpts.getSelectedItem().equals("Bar Graph"))
-								graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, false, false, true));
+								graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, true));
 							
 							else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)"))
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, true, false, true));
+	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, true));
 
 	                        // Add new panel to tab pane 
 	                        graphTabPane.add(sensorString, graphPanels[i-1]);
@@ -878,38 +785,41 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // If user has searched for data, display that, otherwise show all
         devicesFound = data.findDeviceByAddress(addressEntry.getText());
 
-        // Sort the data in the table from user input
-        data.sortData(sortOpts.getSelectedItem().toString(), devicesFound, sorts);
+        if (devicesFound.size() != 0) {
+        	// Sort the data in the table from user input
+	        data.sortData(sortOpts.getSelectedItem().toString(), devicesFound, sorts);
 
-        // Iterate over linked list and add to output
-        listIt = devicesFound.listIterator();
+	        // Iterate over linked list and add to output
+	        listIt = devicesFound.listIterator();
 
-        while (listIt.hasNext()) {
-            // Obtain next device properties
-            deviceToAdd = listIt.next();
+	        while (listIt.hasNext()) {
+	            // Obtain next device properties
+	            deviceToAdd = listIt.next();
 
-            // Store properties from data line
-            Object[] dataToAdd = {
-                deviceToAdd.getDateObtained(),
-                deviceToAdd.getType(), 
-                deviceToAdd.getVersion(), 
-                Integer.parseInt(deviceToAdd.getCounter(), 16),
-                deviceToAdd.getVia(),
-                deviceToAdd.getAddress(), 
-                deviceToAdd.getStatus(), 
-                deviceToAdd.getSensorData(), 
-            };
-                
-            // Add row to table
-            tableModel.addRow(dataToAdd);
+	            // Store properties from data line
+	            Object[] dataToAdd = {
+	                deviceToAdd.getDateObtained(),
+	                deviceToAdd.getType(), 
+	                deviceToAdd.getVersion(), 
+	                Integer.parseInt(deviceToAdd.getCounter(), 16),
+	                deviceToAdd.getVia(),
+	                deviceToAdd.getAddress(), 
+	                deviceToAdd.getStatus(), 
+	                deviceToAdd.getSensorData(), 
+	            };
+	                
+	            // Add row to table
+	            tableModel.addRow(dataToAdd);
+	        }
+
+	        // Results found data
+	        if (devicesFound.size() == 0)
+	            resultsFoundLbl.setText("No Results Found");
+	        else
+	            resultsFoundLbl.setText("Results Found: " + devicesFound.size());
         }
-
-        // Results found data
-        if (devicesFound.size() == 0)
-            resultsFoundLbl.setText("No Results Found");
-        else
-            resultsFoundLbl.setText("Results Found: " + devicesFound.size());
-    }
+        
+   	}
 
     private void addSensorPoint(DataLine deviceToCheck, int sensInc) 
     {

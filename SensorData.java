@@ -140,6 +140,32 @@ public class SensorData
 		Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
 		return devicesFound;
 	}
+	/**
+	 * Method to find the total number of errors and readings found for a particular device by address.
+	 * @return The total number of errors for this device - index 0 = number of sensor readings, index 1 = number of errors
+	 */
+	public int[] findErrorsByAddress(String address)
+	{
+		LinkedList<DataLine> dataLinesByAddress = findDeviceByAddress(address);
+
+		int[] deviceDataArray = new int[2];
+
+		// Iterate over all data lines and find errors, add to array
+ 		listIt = dataLinesByAddress.listIterator();
+
+        while (listIt.hasNext()) {
+
+        	nextData = listIt.next();
+
+        	// Find an error
+        	if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00"))) 
+        		deviceDataArray[0]++;
+
+        	deviceDataArray[1]++;
+        }
+
+        return deviceDataArray;
+	}
 
 	/**
 	 * Method to return the total number of errors found in the data provided.
@@ -215,6 +241,7 @@ public class SensorData
 	public int findNoOfUniqueDevices()
 	{
 		int noOfDevices = 0;
+		boolean firstTime = true;
 		String currentDeviceAddress;
 		String nextAddress;
         Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
@@ -224,43 +251,17 @@ public class SensorData
        	currentDeviceAddress = listIt.next().getAddress();
 
         while (listIt.hasNext()) {
+
         	nextAddress = listIt.next().getAddress();
 
-        	if (!(nextAddress.equals(currentDeviceAddress))) {
+        	if (!(nextAddress.equals(currentDeviceAddress)) || firstTime) {
         		noOfDevices++;
         		currentDeviceAddress = nextAddress;
+        		firstTime = false;
         	}
         }
 
 		return noOfDevices;
-	}
-
-	/**
-	 * Method to find all the devices from the CSV file and return the linked list of all the unique devices.
-	 * @return The linked list of devices.
-	 */
-	public LinkedList<DataLine> findAllDevices()
-	{
-		LinkedList<DataLine> allDevices = new LinkedList<DataLine>();
-        Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
-
-		listIt = dataList.listIterator();
-
-       	DataLine currentDeviceAddress = listIt.next();
-       	DataLine nextAddress;
-       	int noOfDevices = 0;
-
-        while (listIt.hasNext()) {
-        	nextAddress = listIt.next();
-
-        	if (!(nextAddress.getAddress().equals(currentDeviceAddress.getAddress()))) {
-        		noOfDevices++;
-        		currentDeviceAddress = nextAddress;
-        		allDevices.add(nextAddress);
-        	}
-        }
-
-        return allDevices;
 	}
 
 	/**
@@ -312,13 +313,42 @@ public class SensorData
 	}
 
 	/**
+	 * Method to get string details of the maximum, minimum and average values for each graph plot.
+	 * @return The string details for each graph plot.
+	 */
+	public String getGraphDetails(LinkedList<Integer> sensorPoints, int sensLow, int sensHigh)
+	{
+		int runningTotal = 0;
+		int noOfDevices = sensorPoints.size();
+
+    	Collections.sort(sensorPoints);
+		int maxVal = sensorPoints.getLast();
+		int minVal = sensorPoints.getFirst();
+
+		// Iterate over all data lines and add sensor value to running total
+ 		ListIterator<Integer> listItSens = sensorPoints.listIterator();
+
+		while (listItSens.hasNext()) {
+			Integer nextInt = listItSens.next();
+			runningTotal += nextInt;
+		}
+
+		int avgVal = runningTotal/noOfDevices;
+
+		String graphDetails = "Max: " + Integer.toString(maxVal) + ", Min: " + Integer.toString(minVal) + ", Average: " + Integer.toString(avgVal);
+
+		return graphDetails;
+
+	}
+
+	/**
 	 * Method to return the minimum sensor value found from the CSV file.
 	 * @return The minimum sensor value.
 	 */
 	public int getMinVal(int low, int high)
 	{
 		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getSensorData().toString().substring(low,high).compareTo(data_2.getSensorData().toString().substring(low,high)));
-		int minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(0,2), 16);
+		int minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
 		return minVal;
 	}
 
@@ -329,7 +359,7 @@ public class SensorData
 	public int getMaxVal(int low, int high)
 	{
 		Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getSensorData().toString().substring(low,high).compareTo(data_1.getSensorData().toString().substring(low,high)));
-		int maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(0,2), 16);
+		int maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
 		return maxVal;
 	}
 

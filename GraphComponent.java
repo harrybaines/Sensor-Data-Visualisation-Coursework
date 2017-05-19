@@ -19,6 +19,7 @@ public class GraphComponent extends JPanel
     private LinkedList<String> datePoints = new LinkedList<String>();
     private ListIterator<String> listItDates;
     private String title_details;
+    private String graphDetails;
 
     // Graph variables
     private final int pad = 40;
@@ -80,11 +81,13 @@ public class GraphComponent extends JPanel
         g2.draw(new Line2D.Double(width-(pad*2), height-pad, width-((pad*2)+5), height-pad-5));
         g2.draw(new Line2D.Double(width-(pad*2), height-pad, width-((pad*2)+5), height-pad+5));
 
-        // Title label
+        // Title label details
 		g2.setFont(new Font("Verdana", Font.PLAIN, 22)); 
         g2.drawString(title_details, (width/2) - 200, 30);
         g2.setFont(new Font("Verdana", Font.ITALIC, 13));
         g2.drawString("Blue = SUCCESS, Red = ERRORS FOUND", (width/2) - 135, 60);
+        g2.setFont(new Font("Verdana", Font.BOLD, 16));
+        g2.drawString(graphDetails, (width/2) + 400, 30);
 
         // Y axis labels and dashed lines (if applicable)
         g2.setFont(new Font("Verdana", Font.PLAIN, 18)); 
@@ -195,12 +198,13 @@ public class GraphComponent extends JPanel
      * @param datePoints The linked list of date strings to plot on the X axis.
      * @param device_address The string address of the device for which data is being plotted.
      */
-    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, boolean dashed, boolean scatter, boolean bar)
+    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, String graphDetails, boolean dashed, boolean scatter, boolean bar)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
         this.flaggedDataPoints = flaggedDataPoints;
         this.title_details = title_details;
+        this.graphDetails = graphDetails;
         this.dashed = dashed;
         this.scatter = scatter;
         this.bar = bar;
