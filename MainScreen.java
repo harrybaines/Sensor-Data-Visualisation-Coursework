@@ -78,11 +78,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // SENSORS panel components
     private JLabel addressLbl;
-    private JTextField addressEntry;
     private JButton searchSensBut;
     private JLabel resultsFoundLbl;
     private JLabel plotOptLbl;
     private String selectedItem;
+    private JComboBox<String> sensorOpts = new JComboBox<String>();
 
     // Table variables
     private final String[] columnNames = {"Date Obtained", "Device Type", "Version", "Counter", "Via", "Device Address", "Status", "Sensor Data"};
@@ -153,7 +153,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel statisticsFileLbl;
 
     // EVENTS panel components
-    private JComboBox<String> sensorOpts = new JComboBox<String>();
+    private JComboBox<String> sensorOptsEvents = new JComboBox<String>();
+    private JComboBox<String> sensorNoOpts = new JComboBox<String>();
     private JButton findEventsForSensBtn;
     private JTable eventsTable;
     private final String[] eventNames = {"Event Summary For This Device"};
@@ -349,7 +350,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         sensorPanel.add("South", botSensPanel);
 
         // Components - Sensors
-        addressLbl = new JLabel("Search For Device (By Address): ");
+        addressLbl = new JLabel("Search For Device Data (By Address):");
         addressLbl.setHorizontalAlignment(SwingConstants.CENTER);
         addressLbl.setFont(new Font("Helvetica", Font.BOLD, 24));
         addressLbl.setForeground(new Color(9, 137, 11));
@@ -361,15 +362,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets= new Insets(10,0,50,0);
         topSensPanel.add(addressLbl, c);
 
-        addressEntry = new JTextField(20);
-        addressEntry.addActionListener(this);
-        addressEntry.setHorizontalAlignment(SwingConstants.CENTER);
-        c.fill = GridBagConstraints.HORIZONTAL;
+        sensorOpts.addItem("<No File Opened>");
+		c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 5;
+        //c.gridheight = 1;
         c.gridx = 0;
         c.gridy = 1;
         c.insets = new Insets(40,250,5,250);
-        topSensPanel.add(addressEntry, c);
+        topSensPanel.add(sensorOpts, c);
 
         searchSensBut = new JButton("Find");
         searchSensBut.addActionListener(this);
@@ -507,35 +507,81 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(20,0,0,0);
         topEventsPanel.add(eventsTitleLbl, c);
 
-        JLabel viewSensorsFoundLbl = new JLabel("Select A Unique Sensor Device To View Events:");
+        JLabel viewSensorsFoundLbl = new JLabel("Select A Unique Sensor Device To View Events");
         viewSensorsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
         viewSensorsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 22));
         viewSensorsFoundLbl.setForeground(Color.GRAY);
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipady = 40;
+        c.ipady = 30;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.insets = new Insets(10,0,0,0);
+        topEventsPanel.add(viewSensorsFoundLbl, c);
+
+        JLabel deviationExplLbl = new JLabel("An event is defined as a record with a deviation value greater than or equal to 20% about the mean");
+        deviationExplLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        deviationExplLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
+        deviationExplLbl.setForeground(Color.GRAY);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
         c.gridheight = 1;
         c.gridx = 0;
         c.gridy = 2;
-        c.insets = new Insets(20,0,0,0);
-        topEventsPanel.add(viewSensorsFoundLbl, c);
+        topEventsPanel.add(deviationExplLbl, c);
 
-        sensorOpts.addItem("<No File Opened>");
-		c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipady = 40;
+        JLabel sensorNameLbl = new JLabel("Device Address:");
+        sensorNameLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        sensorNameLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
+        sensorNameLbl.setForeground(new Color(142, 199, 152));
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
         c.gridheight = 1;
         c.gridx = 0;
         c.gridy = 3;
-        c.insets = new Insets(20,250,5,250);
-        topEventsPanel.add(sensorOpts, c);
+        c.insets = new Insets(30,30,10,500);
+        topEventsPanel.add(sensorNameLbl, c);
+
+        sensorOptsEvents.addItem("<No File Opened>");
+		c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 4;
+        c.insets = new Insets(10,30,30,500);
+        topEventsPanel.add(sensorOptsEvents, c);
+
+        JLabel sensorNoLbl = new JLabel("Sensor Number:");
+        sensorNoLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        sensorNoLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
+        sensorNoLbl.setForeground(new Color(142, 199, 152));
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.insets = new Insets(30,500,10,30);
+        topEventsPanel.add(sensorNoLbl, c);
+
+        for (int i = 1; i <= 10; i++)
+        	sensorNoOpts.addItem(Integer.toString(i));
+
+		c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 4;
+        c.insets = new Insets(10,500,30,30);
+        topEventsPanel.add(sensorNoOpts, c);
 
         findEventsForSensBtn = new JButton("Find Events");
         findEventsForSensBtn.addActionListener(this);
         c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipady = 40;
+        c.ipady = 20;
         c.gridx = 0;
-        c.gridy = 4;
+        c.gridy = 5;
         c.gridheight = 1;
-        c.insets = new Insets(5,250,5,250);
+        c.insets = new Insets(5,300,20,300);
         topEventsPanel.add(findEventsForSensBtn, c);
 
 		// Events panel - table components
@@ -547,14 +593,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         };
         eventsTable.getSelectionModel().addListSelectionListener(this);
         eventsTable.setRowHeight(20);
+        Object[] noCsv = {"<Search for a device>"};
+        tableModel.addRow(noCsv);
         scrollPane = new JScrollPane(eventsTable);
         midEventsPanel.add("Center", scrollPane);
 
         saveEventsToFileBtn = new JButton("Save Events to File");
         saveEventsToFileBtn.addActionListener(this);
         saveEventsToFileBtn.setHorizontalAlignment(SwingConstants.CENTER);
-        saveEventsToFileBtn.setFont(new Font("Helvetica", Font.BOLD, 15));
-        saveEventsToFileBtn.setForeground(Color.BLACK);
         botEventsPanel.add(saveEventsToFileBtn);
 
         // Tab pane
@@ -624,6 +670,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 errorStatValues[0] = data.getNoOfRecords();
                 errorStatValues[1] = errorsArray[0];
                 errorStatValues[2] = errorsArray[1];
+
+                // Error checking
+                for (int i = 1; i <= 10; i++)
+	                if (data.getMaxVal(i-1, i+1, data.getAllData()) == -1 || data.getMinVal(i-1, i+1, data.getAllData()) == -1) {
+	                	JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+	                	break;
+	                }
 
                 for (int i = 1; i <= 10; i++) {
                 	sensorMinStatValues[i-1] = data.getMinVal(i-1, i+1, data.getAllData());
@@ -831,7 +884,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 	                        // Get Max,Min,Avg data from the specific plot into a single string
 	                        String graphDetails = data.getGraphDetails(sensorPoints, sensInc-1, sensInc);
 
-	                        // Ensure devices found is sorted in ascending order
+	                        // Ensure sensor points are sorted in ascending order
     						Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
 
 	                        // Add new graph type component to new panel
@@ -885,8 +938,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     private void populateSensorsCombo()
     {
-    	for (int i = 0; i < sensorOpts.getItemCount(); i++)
-    		sensorOpts.removeItemAt(i);
+    	sensorOpts.removeAllItems();
+    	sensorOptsEvents.removeAllItems();
 
 		// Populate the sensors combobox
 		LinkedList<DataLine> sensorEventsList = new LinkedList<DataLine>();
@@ -897,6 +950,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         while (listIt.hasNext()) {
         	deviceToAdd = listIt.next();
         	sensorOpts.addItem(deviceToAdd.getAddress());
+        	sensorOptsEvents.addItem(deviceToAdd.getAddress());
         }
     }
 
@@ -910,70 +964,64 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
    	 	tableModel.getDataVector().removeAllElements();
    		tableModel.fireTableDataChanged();
 
-   		LinkedList<DataLine> deviceEventsList = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
+   		LinkedList<DataLine> deviceEventsList = data.findDeviceByAddress(sensorOptsEvents.getSelectedItem().toString());
 
 		ArrayList<Integer> sensorMeans = new ArrayList<Integer>();
 
+		boolean errorInConversion = false;
 		sensInc = 1;
 
         for (int i = 1; i <= 10; i++) {
         	sensorMeans.add(data.getAvgVal(sensInc-1, sensInc+1, deviceEventsList));
-        	System.out.println("Mean for sensor " + i + " = " + sensorMeans.get(i-1));
         	sensInc += 2;
         }
+
+        String deviationString = "No Events Found";
 
 		// Iterate over linked list and add to output
         listIt = deviceEventsList.listIterator();
 
         while (listIt.hasNext()) {
+
             // Obtain next device properties
             deviceToAdd = listIt.next();
 
 			ArrayList<Integer> deviationValues = new ArrayList<Integer>();
 
-            int deviationValue;
+            int deviationValue = 0;
             sensInc = 1;
+            errorInConversion = false;
 
-            for (int i = 1; i <= 10; i++) {
-            	try {
-            		deviationValues.add(data.getDeviationFromMean(sensorMeans.get(i-1), Integer.parseInt(deviceToAdd.getSensorData().substring(sensInc-1, sensInc+1), 16)));
+            int sensorIndex = Integer.parseInt(sensorNoOpts.getSelectedItem().toString()) * 2;
+
+        	try {
+        		deviationValue = data.getDeviationFromMean(sensorMeans.get((sensorIndex/2) - 1), Integer.parseInt(deviceToAdd.getSensorData().substring(sensorIndex-2, sensorIndex), 16));
+        	}
+        	catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+        		errorInConversion = true;
+        	}
+
+
+        	if (!errorInConversion)
+            	if (deviationValue >= 20) {
+					deviationString = "Sensor " + sensorIndex/2 + " on device " + deviceToAdd.getAddress() + " showed a deviation value of " + deviationValue + "% on " + deviceToAdd.getDateObtained();
+            		
+            		// Store properties from data line
+		       		Object[] dataToAdd = {deviationString};
+		            
+		        	// Add row to table
+		        	tableModel.addRow(dataToAdd);
             	}
-            	catch (NumberFormatException e) {
-            		JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for a device.", "Error", JOptionPane.ERROR_MESSAGE);   
-            		continue;
-            	}
-
-            	sensInc += 2;
-            }
-
-
-            double max = deviationValues.get(0);
-            int sensorLargestIndex = -1;
-
-			for(int i = 0; i < deviationValues.size(); i++) {
-
-		    	double number = deviationValues.get(i);
-		    	System.out.println("deviation calculated = " + number);
-		    	if(number > max) {
-		    		System.out.println("AYYAYA");
-		    		max = number;
-		    		sensorLargestIndex = i;
-		    	}
-			}
-
-            String deviationString = "";
-
-            if (sensorLargestIndex == -1)
-            	deviationString = "No significant deviations found";
-           	else
-				deviationString = "Sensor " + sensorLargestIndex + " on device " + deviceToAdd.getAddress() + " showed a deviation value of " + max + "% on " + deviceToAdd.getDateObtained();
-
-            // Store properties from data line
-            Object[] dataToAdd = {deviationString};
-                
-            // Add row to table
-            tableModel.addRow(dataToAdd);
+        	sensInc += 2;
         }
+
+        if (deviationString.equals("No Events Found")) {
+        	Object[] dataToAdd = {deviationString};
+        	tableModel.addRow(dataToAdd);
+        }
+
+        if (errorInConversion)
+        	JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
     }
 
     /**
@@ -987,7 +1035,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
    		tableModel.fireTableDataChanged();
         
         // If user has searched for data, display that, otherwise show all
-        devicesFound = data.findDeviceByAddress(addressEntry.getText());
+        devicesFound = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
 
         if (devicesFound.size() != 0) {
         	// Sort the data in the table from user input
@@ -1029,6 +1077,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     {
         sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
         sensorPoints.add(sensorValue);
+    	System.out.println("date to check = " + deviceToCheck.getDateObtained() + " and value = " + sensorValue);
 
         if (!(deviceToCheck.getStatus().equals("0") || deviceToCheck.getStatus().equals("00"))) {
         	flaggedDataPoints.add(0); //flagged ("fail")

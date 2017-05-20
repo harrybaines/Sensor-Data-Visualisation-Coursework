@@ -118,11 +118,12 @@ public class GraphComponent extends JPanel
         listIt = sensorPoints.listIterator();
         listItFlagged = flaggedDataPoints.listIterator();
 
+		g2.setStroke(new BasicStroke(1));
         while (listIt.hasNext())
         {
             sensorPoint = listIt.next();
             flaggedPoint = listItFlagged.next();
-
+        	
             // Check for fail - red = fail, blue = success
             if (flaggedPoint == 0)
             	g2.setPaint(Color.RED);

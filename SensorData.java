@@ -289,7 +289,6 @@ public class SensorData
             if (!(nextDeviceToAdd.getAddress().equals(currentDeviceToAdd.getAddress()))) {
                 uniqueDevices.add(nextDeviceToAdd);
                 currentDeviceToAdd = nextDeviceToAdd;
-                System.out.println("Address: " + nextDeviceToAdd.getAddress());
             }
         }
 
@@ -355,7 +354,7 @@ public class SensorData
         int runningTotal = 0;
         int noOfDevices = sensorPoints.size();
 
-        Collections.sort(sensorPoints);
+        //Collections.sort(sensorPoints);
         int maxVal = sensorPoints.getLast();
         int minVal = sensorPoints.getFirst();
 
@@ -376,30 +375,23 @@ public class SensorData
     }
 
     /**
-     * Method to obtain the deviation from the mean for a given sensor value for the events panel.
-     */
-    public int getDeviationFromMean(String sensorData)
-    {
-        //int meanForSensor = getMeanFromSensor()
-
-       // sensorData.substring(low, high);
-        return 0;
-    }
-
-    /**
      * Method to return the minimum sensor value found from the CSV file.
      * @return The minimum sensor value.
      */
     public int getMinVal(int low, int high, LinkedList<DataLine> dataList)
     {
         int minVal = 0;
+        boolean failed = false;
+
         Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getSensorData().toString().substring(low,high).compareTo(data_2.getSensorData().toString().substring(low,high)));
         try {
             minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
         }
         catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+            failed = true;
         }
+        if (failed)
+            minVal = -1;
         return minVal;
     }
 
@@ -410,13 +402,18 @@ public class SensorData
     public int getMaxVal(int low, int high, LinkedList<DataLine> dataList)
     {
         int maxVal = 0;
+        boolean failed = false;
+
         Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getSensorData().toString().substring(low,high).compareTo(data_1.getSensorData().toString().substring(low,high)));
         try {
             maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
         }
         catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+            failed = true;
         }
+        if (failed)
+            maxVal = -1;
+
         return maxVal;
     }
 
@@ -436,8 +433,8 @@ public class SensorData
             try {
                 runningTotal += Integer.parseInt(nextData.getSensorData().substring(low,high), 16);
             }
-            catch (NumberFormatException e) {
-                continue;
+            catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                break;
             }
 
         }
@@ -453,12 +450,9 @@ public class SensorData
      */
     public int getDeviationFromMean (int mean, int sensorData)
     {
-        int deviationPercentage = (int) ( (double) (( (double) sensorData-mean)/mean) * 100.0);
-
-        System.out.println(((180-71)/71) * 100.0);
-
-        System.out.println("data = " + sensorData + " and mean = " + mean);
-        System.out.println("calculated deviation!! = " + deviationPercentage + "\n");
+        if (mean == 0)
+            return 0;
+        int deviationPercentage = (int) Math.abs(( (double) (( (double) sensorData-mean)/mean) * 100.0));
         return deviationPercentage;
     }
 

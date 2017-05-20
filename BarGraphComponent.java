@@ -75,7 +75,6 @@ public class BarGraphComponent extends JPanel
 			case 1:
 				namesUsing = errorXAxisNames;
 				break;
-
 			case 2:
 				namesUsing = sensorXAxisNames;
 				break;
