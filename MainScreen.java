@@ -46,6 +46,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JPanel midStatPanel;
     private JPanel botStatPanel;
 
+    private JPanel eventsPanel;
+    private JPanel topEventsPanel;
+    private JPanel midEventsPanel;
+    private JPanel botEventsPanel;
+
     // UI Components
     // HOME panel components
     private GridBagConstraints c;
@@ -133,12 +138,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JTabbedPane graphTabPane;
     private int sensInc;
     private String sensorString;
-    private JButton[] eventBtns = new JButton[10];
     private JButton[] exportBtns = new JButton[10];
     private JPanel[] graphPanels = new JPanel[10];
     private JFileChooser selectDest;
     private BufferedImage img;
-    private JButton eventsBtn;
 
     // STATISTICS panel components
     private JLabel statsLbl; 
@@ -148,6 +151,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private int[] sensorAvgStatValues = new int[10];
     private int[] errorsArray;
     private JLabel statisticsFileLbl;
+
+    // EVENTS panel components
+    private JComboBox<String> sensorOpts = new JComboBox<String>();
+    private JButton findEventsForSensBtn;
+    private JTable eventsTable;
+    private final String[] eventNames = {"Event Summary For This Device"};
+    private JButton saveEventsToFileBtn;
 
     /**
      * Constructor to initialise panels and place components on the UI.
@@ -474,6 +484,79 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(10,0,10,0);
         botStatPanel.add(exportBtn, c);
 
+        // EVENTS panels
+        JPanel eventsPanel = new JPanel(new BorderLayout());
+        JPanel topEventsPanel = new JPanel(new GridBagLayout());
+        JPanel midEventsPanel = new JPanel(new BorderLayout());
+        JPanel botEventsPanel = new JPanel(new BorderLayout());
+
+        eventsPanel.add("North", topEventsPanel);
+        eventsPanel.add("Center", midEventsPanel);
+        eventsPanel.add("South", botEventsPanel);
+
+        JLabel eventsTitleLbl = new JLabel("Events");
+        eventsTitleLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        eventsTitleLbl.setFont(new Font("Helvetica", Font.BOLD, 28));
+        eventsTitleLbl.setForeground(new Color(142, 199, 152));
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridwidth = 1;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.insets = new Insets(20,0,0,0);
+        topEventsPanel.add(eventsTitleLbl, c);
+
+        JLabel viewSensorsFoundLbl = new JLabel("Select A Unique Sensor Device To View Events:");
+        viewSensorsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        viewSensorsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 22));
+        viewSensorsFoundLbl.setForeground(Color.GRAY);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 40;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.insets = new Insets(20,0,0,0);
+        topEventsPanel.add(viewSensorsFoundLbl, c);
+
+        sensorOpts.addItem("<No File Opened>");
+		c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 40;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.insets = new Insets(20,250,5,250);
+        topEventsPanel.add(sensorOpts, c);
+
+        findEventsForSensBtn = new JButton("Find Events");
+        findEventsForSensBtn.addActionListener(this);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 40;
+        c.gridx = 0;
+        c.gridy = 4;
+        c.gridheight = 1;
+        c.insets = new Insets(5,250,5,250);
+        topEventsPanel.add(findEventsForSensBtn, c);
+
+		// Events panel - table components
+        tableModel = new DefaultTableModel(eventNames, 0);
+        eventsTable = new JTable(tableModel) {
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        eventsTable.getSelectionModel().addListSelectionListener(this);
+        eventsTable.setRowHeight(20);
+        scrollPane = new JScrollPane(eventsTable);
+        midEventsPanel.add("Center", scrollPane);
+
+        saveEventsToFileBtn = new JButton("Save Events to File");
+        saveEventsToFileBtn.addActionListener(this);
+        saveEventsToFileBtn.setHorizontalAlignment(SwingConstants.CENTER);
+        saveEventsToFileBtn.setFont(new Font("Helvetica", Font.BOLD, 15));
+        saveEventsToFileBtn.setForeground(Color.BLACK);
+        botEventsPanel.add(saveEventsToFileBtn);
+
         // Tab pane
         tabPane = new JTabbedPane();
         tabPane.add("Home", homePanel);
@@ -482,6 +565,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         tabPane.setBackgroundAt(1, Color.GREEN);
         tabPane.add("Data Statistics", statsPanel);
         tabPane.setBackgroundAt(2, Color.RED);
+        tabPane.add("Events", eventsPanel);
+        tabPane.setBackgroundAt(3, new Color(142, 199, 152));
         tabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
         setLayout(new BorderLayout());
         add(tabPane, BorderLayout.CENTER);
@@ -541,9 +626,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 errorStatValues[2] = errorsArray[1];
 
                 for (int i = 1; i <= 10; i++) {
-                	sensorMinStatValues[i-1] = data.getMinVal(i-1, i+1);
-                	sensorMaxStatValues[i-1] = data.getMaxVal(i-1, i+1);
-                	sensorAvgStatValues[i-1] = data.getAvgVal(i-1, i+1);
+                	sensorMinStatValues[i-1] = data.getMinVal(i-1, i+1, data.getAllData());
+                	sensorMaxStatValues[i-1] = data.getMaxVal(i-1, i+1, data.getAllData());
+                	sensorAvgStatValues[i-1] = data.getAvgVal(i-1, i+1, data.getAllData());
                 }
 
                 // Update home labels
@@ -562,6 +647,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 		   	 	tableModel.getDataVector().removeAllElements();
 		   		tableModel.fireTableDataChanged();
 		   		resultsFoundLbl.setText("No Results Found");
+
+		   		// Populate combobox with unique sensors on events panel
+		   		populateSensorsCombo();
             }
         }
 
@@ -611,6 +699,19 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             saveToFile(midStatPanel);
         }
 
+        // Check for button click on events panel to display all events for a particular sensor
+        else if (e.getSource() == findEventsForSensBtn) {
+        	if (data.getAllData().size() == 0)
+        		JOptionPane.showMessageDialog(new JFrame(), "Error - no data to find events for! Please open a CSV file first.", "Error", JOptionPane.ERROR_MESSAGE);   
+        	else 
+        		displaySensorEvents();
+        }
+
+        // Check for button click on saving all events found to a text file (output)
+        else if (e.getSource() == saveEventsToFileBtn) {
+        	System.out.println("SAVE!");
+        }
+
         // Check for close button on the info pop up window
         else if (e.getSource() == quitInfoBtn) {
         	infoWindow.dispose();
@@ -621,8 +722,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             for (int i = 0; i < exportBtns.length; i++)
                 if (e.getSource() == exportBtns[i])
                     saveToFile(graphPanels[i]);
-                else if (e.getSource() == eventBtns[i])
-        			showEventsWindow(i);
         }    
     }
 
@@ -758,11 +857,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 	                        // Add new panel to tab pane 
 	                        graphTabPane.add(sensorString, graphPanels[i-1]);
 
-	                        // Add new event/export button to each panel
-	                        eventBtns[i-1] = new JButton("View Events");
-	                        eventBtns[i-1].addActionListener(this);
-	                        graphPanels[i-1].add("North", eventBtns[i-1]);
-
+	                        // Add new export button to each panel
 	                        exportBtns[i-1] = new JButton("Save To File");
 	                        exportBtns[i-1].addActionListener(this);
 	                        graphPanels[i-1].add("South", exportBtns[i-1]); 
@@ -786,15 +881,99 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     }
 
     /**
-     * Method to display the events window displaying meanings behind data provided from the CSV file.
+     * Simple method to populate the sensors options combobox on the events panel.
      */
-    private void showEventsWindow(int panelIndex)
+    private void populateSensorsCombo()
     {
+    	for (int i = 0; i < sensorOpts.getItemCount(); i++)
+    		sensorOpts.removeItemAt(i);
 
-    	System.out.println("Button " + panelIndex+1 + " was pressed on panel " + graphPanels[panelIndex]);
+		// Populate the sensors combobox
+		LinkedList<DataLine> sensorEventsList = new LinkedList<DataLine>();
+		sensorEventsList = data.findUniqueDevices();
+
+        listIt = sensorEventsList.listIterator();
+
+        while (listIt.hasNext()) {
+        	deviceToAdd = listIt.next();
+        	sensorOpts.addItem(deviceToAdd.getAddress());
+        }
+    }
+
+    /**
+     * Method to display all the events found for a chosen sensor in a simple table on the events panel.
+     */
+    private void displaySensorEvents()
+    {
+    	// Clear table contents
+   	 	tableModel = (DefaultTableModel) eventsTable.getModel();
+   	 	tableModel.getDataVector().removeAllElements();
+   		tableModel.fireTableDataChanged();
+
+   		LinkedList<DataLine> deviceEventsList = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
+
+		ArrayList<Integer> sensorMeans = new ArrayList<Integer>();
+
+		sensInc = 1;
+
+        for (int i = 1; i <= 10; i++) {
+        	sensorMeans.add(data.getAvgVal(sensInc-1, sensInc+1, deviceEventsList));
+        	System.out.println("Mean for sensor " + i + " = " + sensorMeans.get(i-1));
+        	sensInc += 2;
+        }
+
+		// Iterate over linked list and add to output
+        listIt = deviceEventsList.listIterator();
+
+        while (listIt.hasNext()) {
+            // Obtain next device properties
+            deviceToAdd = listIt.next();
+
+			ArrayList<Integer> deviationValues = new ArrayList<Integer>();
+
+            int deviationValue;
+            sensInc = 1;
+
+            for (int i = 1; i <= 10; i++) {
+            	try {
+            		deviationValues.add(data.getDeviationFromMean(sensorMeans.get(i-1), Integer.parseInt(deviceToAdd.getSensorData().substring(sensInc-1, sensInc+1), 16)));
+            	}
+            	catch (NumberFormatException e) {
+            		JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for a device.", "Error", JOptionPane.ERROR_MESSAGE);   
+            		continue;
+            	}
+
+            	sensInc += 2;
+            }
 
 
+            double max = deviationValues.get(0);
+            int sensorLargestIndex = -1;
 
+			for(int i = 0; i < deviationValues.size(); i++) {
+
+		    	double number = deviationValues.get(i);
+		    	System.out.println("deviation calculated = " + number);
+		    	if(number > max) {
+		    		System.out.println("AYYAYA");
+		    		max = number;
+		    		sensorLargestIndex = i;
+		    	}
+			}
+
+            String deviationString = "";
+
+            if (sensorLargestIndex == -1)
+            	deviationString = "No significant deviations found";
+           	else
+				deviationString = "Sensor " + sensorLargestIndex + " on device " + deviceToAdd.getAddress() + " showed a deviation value of " + max + "% on " + deviceToAdd.getDateObtained();
+
+            // Store properties from data line
+            Object[] dataToAdd = {deviationString};
+                
+            // Add row to table
+            tableModel.addRow(dataToAdd);
+        }
     }
 
     /**
