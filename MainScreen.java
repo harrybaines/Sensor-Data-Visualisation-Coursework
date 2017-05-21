@@ -81,7 +81,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel firstDateLbl;
     private JLabel recentReadingDateLbl;
     private JLabel recentReadingLbl;
-
     private JButton openFileBtn;
     private JButton exportBtn;
     private JButton quitBtn;
@@ -105,14 +104,31 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private DataLine deviceToAdd; 
 
     // Info pop up panel variables
-    private JLabel infoTitle;
     private JTable infoTable;
     private DefaultTableModel infoTableModel;
     private final String[] infoNames;
     private int sensorDecValue;
     private String sensorHexValue;
-    private JLabel notesDetailsLbl;
     private JButton quitInfoBtn;
+    private JLabel notesDetailsLbl;
+    private JLabel infoTitle;
+    private JLabel deviceAddressLbl;
+    private JLabel deviceTypeLbl;
+    private JLabel deviceVersionLbl;
+    private JLabel errorsMissedLbl;
+    private JLabel viaLbl;
+    private JLabel statusLbl;
+    private JLabel dateLbl;
+    private JLabel dataLbl;
+    private JLabel addressDetails;
+    private JLabel typeDetails;
+    private JLabel versionDetails;
+    private JLabel errorsDetails;
+    private JLabel viaDetails;
+    private JLabel statusDetails;
+    private JLabel dateDetails;
+    private JLabel dataDetails;
+    private JLabel generalNotesLbl;
 
     // Sort panel components
     private JLabel sortLbl;
@@ -143,6 +159,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JButton[] exportBtns;
     private JFileChooser selectDest;
     private BufferedImage img;
+    private JLabel errorLbl;
+    private int index;
+    private int deviceCounter;
+    private double increment;
+    private double runningIncrement;
+    private int dateInc;
+    private String graphDetails;
 
     // STATISTICS panel components
     private JLabel statsLbl; 
@@ -154,6 +177,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private int[] sensorAvgStatValues;
     private int[] errorsArray;
     private JLabel statisticsFileLbl;
+    private JLabel findDeviceLbl;
 
     // EVENTS panel components
     private JComboBox<String> sensorOptsEvents;
@@ -163,6 +187,26 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private final String[] eventNames;
     private JButton saveEventsToFileBtn;
     private LinkedList<String> eventsFound;
+    private JLabel eventsTitleLbl;
+    private JLabel viewSensorsFoundLbl;
+    private JLabel deviationExplLbl;
+    private JLabel sensorNameLbl;
+    private JLabel sensorNoLbl;
+    private Object[] noCsv;
+    private LinkedList<DataLine> sensorEventsList;
+    private LinkedList<DataLine> deviceEventsList;
+    private ArrayList<Integer> sensorMeans;
+    private boolean errorInConversion;
+    private String deviationString;
+    private ArrayList<Integer> deviationValues;
+    private int deviationValue;
+    private int sensorIndex;
+    private Object[] dataToAdd;
+    private JFileChooser chooser;
+    private String filename;
+    private ListIterator<String> eventsIt;
+    private BufferedWriter file;   
+    private String nextEvent;
 
     /**
      * Constructor to initialise panels and place components on the UI.
@@ -254,7 +298,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridy = 4;
         c.insets = new Insets(100,0,0,0);
         topHomePanel.add(basicDataLbl, c);
-     	
+        
         noOfLinesLbl = new JLabel("Number Of Lines");
         noOfLinesLbl.setHorizontalAlignment(SwingConstants.CENTER);
         noOfLinesLbl.setFont(new Font("Helvetica", Font.ITALIC, 20));
@@ -400,7 +444,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topSensPanel.add(addressLbl, c);
 
         sensorOpts.addItem("<No File Opened>");
-		c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 5;
         //c.gridheight = 1;
         c.gridx = 0;
@@ -440,7 +484,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         scrollPane = new JScrollPane(table);
         midSensPanel.add("Center", scrollPane);
 
-		// Sensors panel - bottom
+        // Sensors panel - bottom
         botSortPanel = new JPanel(new GridLayout(4,1,10,10));
         botSortPanel.setBorder(new EmptyBorder(6,20,20,20));
         botVisPanel = new JPanel(new GridLayout(5,1,20,20));
@@ -504,8 +548,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(10,0,10,0);
         topStatPanel.add(statsLbl, c);
 
-        JLabel findDeviceLbl = new JLabel("Select a Device:");
-		findDeviceLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        findDeviceLbl = new JLabel("Select a Device:");
+        findDeviceLbl.setHorizontalAlignment(SwingConstants.CENTER);
         findDeviceLbl.setFont(new Font("Helvetica", Font.ITALIC, 22));
         findDeviceLbl.setForeground(Color.GRAY);
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -554,16 +598,16 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         botStatPanel.add(exportBtn, c);
 
         // EVENTS panels
-        JPanel eventsPanel = new JPanel(new BorderLayout());
-        JPanel topEventsPanel = new JPanel(new GridBagLayout());
-        JPanel midEventsPanel = new JPanel(new BorderLayout());
-        JPanel botEventsPanel = new JPanel(new BorderLayout());
+        eventsPanel = new JPanel(new BorderLayout());
+        topEventsPanel = new JPanel(new GridBagLayout());
+        midEventsPanel = new JPanel(new BorderLayout());
+        botEventsPanel = new JPanel(new BorderLayout());
 
         eventsPanel.add("North", topEventsPanel);
         eventsPanel.add("Center", midEventsPanel);
         eventsPanel.add("South", botEventsPanel);
 
-        JLabel eventsTitleLbl = new JLabel("Events");
+        eventsTitleLbl = new JLabel("Events");
         eventsTitleLbl.setHorizontalAlignment(SwingConstants.CENTER);
         eventsTitleLbl.setFont(new Font("Helvetica", Font.BOLD, 28));
         eventsTitleLbl.setForeground(new Color(142, 199, 152));
@@ -576,7 +620,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(20,0,0,0);
         topEventsPanel.add(eventsTitleLbl, c);
 
-        JLabel viewSensorsFoundLbl = new JLabel("Select A Unique Sensor Device To View Events");
+        viewSensorsFoundLbl = new JLabel("Select A Unique Sensor Device To View Events");
         viewSensorsFoundLbl.setHorizontalAlignment(SwingConstants.CENTER);
         viewSensorsFoundLbl.setFont(new Font("Helvetica", Font.BOLD, 22));
         viewSensorsFoundLbl.setForeground(Color.GRAY);
@@ -588,7 +632,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(10,0,0,0);
         topEventsPanel.add(viewSensorsFoundLbl, c);
 
-        JLabel deviationExplLbl = new JLabel("An event is defined as a record with a deviation value greater than or equal to 20% about the mean");
+        deviationExplLbl = new JLabel("An event is defined as a record with a deviation value greater than or equal to 20% about the mean");
         deviationExplLbl.setHorizontalAlignment(SwingConstants.CENTER);
         deviationExplLbl.setFont(new Font("Helvetica", Font.ITALIC, 18));
         deviationExplLbl.setForeground(Color.GRAY);
@@ -599,7 +643,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.gridy = 2;
         topEventsPanel.add(deviationExplLbl, c);
 
-        JLabel sensorNameLbl = new JLabel("Device Address:");
+        sensorNameLbl = new JLabel("Device Address:");
         sensorNameLbl.setHorizontalAlignment(SwingConstants.CENTER);
         sensorNameLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         sensorNameLbl.setForeground(new Color(142, 199, 152));
@@ -612,7 +656,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topEventsPanel.add(sensorNameLbl, c);
 
         sensorOptsEvents.addItem("<No File Opened>");
-		c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 10;
         c.gridheight = 1;
         c.gridx = 0;
@@ -620,7 +664,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(10,30,30,500);
         topEventsPanel.add(sensorOptsEvents, c);
 
-        JLabel sensorNoLbl = new JLabel("Sensor Number:");
+        sensorNoLbl = new JLabel("Sensor Number:");
         sensorNoLbl.setHorizontalAlignment(SwingConstants.CENTER);
         sensorNoLbl.setFont(new Font("Helvetica", Font.BOLD, 18));
         sensorNoLbl.setForeground(new Color(142, 199, 152));
@@ -633,9 +677,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         topEventsPanel.add(sensorNoLbl, c);
 
         for (int i = 1; i <= 10; i++)
-        	sensorNoOpts.addItem(Integer.toString(i));
+            sensorNoOpts.addItem(Integer.toString(i));
 
-		c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 10;
         c.gridheight = 1;
         c.gridx = 0;
@@ -653,7 +697,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         c.insets = new Insets(5,300,20,300);
         topEventsPanel.add(findEventsForSensBtn, c);
 
-		// Events panel - table components
+        // Events panel - table components
         tableModel = new DefaultTableModel(eventNames, 0);
         eventsTable = new JTable(tableModel) {
             public boolean isCellEditable(int row, int column) {
@@ -661,7 +705,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             }
         };
         eventsTable.setRowHeight(30);
-        Object[] noCsv = {"<Search for a device>"};
+        noCsv = new Object[] {"<Search for a device>"};
         tableModel.addRow(noCsv);
         scrollPane = new JScrollPane(eventsTable);
         midEventsPanel.add("Center", scrollPane);
@@ -722,7 +766,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * Detects if a button on the UI has been pressed.
      * Allows the user to search for a sensor device, sort data in the table, visualise data as graphs and search for a CSV file.
-     *
      * @param e The action event instance.
      */
     public void actionPerformed(ActionEvent e) 
@@ -731,7 +774,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         if (e.getSource() == openFileBtn) {
             if (data.findFile()) {
                 fileOpenedLbl.setText(data.getFileName());
-				statisticsFileLbl.setText(data.getFileName());
+                statisticsFileLbl.setText(data.getFileName());
 
                 // Create bar graph with statistics on data from chosen file
                 errorsArray = data.findNoOfErrors();
@@ -739,11 +782,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 errorStatValues[1] = errorsArray[0];
                 errorStatValues[2] = errorsArray[1];
 
-                // Update home labels
+                // Update relevant labels
                 linesLbl.setText(Integer.toString(data.getNoOfRecords()));
                 errorsLbl.setText(Integer.toString(data.findNoOfErrors()[0]));
 
-				errorValue = (double) (((errorsArray[0] / (double) data.getNoOfRecords()) * 100));
+                errorValue = (double) (((errorsArray[0] / (double) data.getNoOfRecords()) * 100));
                 percentLbl.setText(String.format("%.2f", errorValue) + "%");
 
                 devicesFoundNoLbl.setText(Integer.toString(data.findNoOfUniqueDevices()));
@@ -751,21 +794,22 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 recentReadingLbl.setText(data.findRecentDate());
 
                 // Reset table with containing data
-		   	 	tableModel = (DefaultTableModel) table.getModel();
-		   	 	tableModel.getDataVector().removeAllElements();
-		   		tableModel.fireTableDataChanged();
-		   		resultsFoundLbl.setText("No Results Found");
+                tableModel = (DefaultTableModel) table.getModel();
+                tableModel.getDataVector().removeAllElements();
+                tableModel.fireTableDataChanged();
+                resultsFoundLbl.setText("No Results Found");
 
-		   		// Populate combobox with unique sensors on events panel
-		   		populateSensorsCombo();
+                // Populate combobox with unique sensors on events panel
+                populateSensorsCombo();
             }
         }
 
+        // Allows the user to quit the program
         else if (e.getSource() == quitBtn) {
             System.exit(0);
         }
 
-        // Search for device by address
+        // Search for device by address and populate the table
         else if (e.getSource() == searchSensBut) {
             // Re-populate table with data from user input device address and populate date comboboxes
             populateTableData();
@@ -773,7 +817,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Sort the data in the table and populate date comboboxes
         else if (e.getSource() == applySortBtn) {
-    
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to sort! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
             else
@@ -789,6 +832,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             populateTableData();
             data.sortData(sorts[1], devicesFound, sorts);
 
+            // Display all the graphs
             if (devicesFound.size() == 0)
                 JOptionPane.showMessageDialog(new JFrame(), "Error - no data to visualise! Please search for a device first.", "Error", JOptionPane.ERROR_MESSAGE);   
             else {
@@ -804,9 +848,9 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Check for button click on statistics screen when selecting a device to view statistics for
         else if (e.getSource() == findStatsForDeviceBtn) {
-        	displayStatisticsForSensor(deviceStatOpts.getSelectedItem().toString());
-        	revalidate();
-        	repaint();
+            displayStatisticsForSensor(deviceStatOpts.getSelectedItem().toString());
+            revalidate();
+            repaint();
         }
 
         // Check for button export button click on statistics screen
@@ -816,20 +860,20 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Check for button click on events panel to display all events for a particular sensor
         else if (e.getSource() == findEventsForSensBtn) {
-        	if (data.getAllData().size() == 0)
-        		JOptionPane.showMessageDialog(new JFrame(), "Error - no data to find events for! Please open a CSV file first.", "Error", JOptionPane.ERROR_MESSAGE);   
-        	else 
-        		displaySensorEvents();
+            if (data.getAllData().size() == 0)
+                JOptionPane.showMessageDialog(new JFrame(), "Error - no data to find events for! Please open a CSV file first.", "Error", JOptionPane.ERROR_MESSAGE);   
+            else 
+                displaySensorEvents();
         }
 
         // Check for button click on saving all events found to a text file (output)
         else if (e.getSource() == saveEventsToFileBtn) {
-        	saveEventsToFile(eventsFound, sensorOpts.getSelectedItem().toString());
+            saveEventsToFile(eventsFound, sensorOpts.getSelectedItem().toString());
         }
 
         // Check for close button on the info pop up window
         else if (e.getSource() == quitInfoBtn) {
-        	infoWindow.dispose();
+            infoWindow.dispose();
         }
 
         // Check for event/export button click on graph panels
@@ -841,10 +885,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     }
 
     /**
-     * A method to display the graph user interface.
+     * A method to display a UI with a tabbed pane with all sensors found for a particular device.
      */
     private void displayGraphs() 
     {
+        // Window details
         graphWindow = new JFrame("Scatter Graphs");
         graphTabPane = new JTabbedPane();
         graphTabPane.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -858,13 +903,13 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         if (devicesFound.size() < 6)
             JOptionPane.showMessageDialog(new JFrame(), "Insufficient data to plot. 6 or more devices are required to plot the graphs.", "Error", JOptionPane.ERROR_MESSAGE);   
         else {   
-        	if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]) 
-        		|| ((visOpts.getSelectedItem().equals(visuals[4]) || visOpts.getSelectedItem().equals(visuals[5]))) && plotOpts.getSelectedItem().equals(plots[0]))
+            if (devicesFound.size() > 50 && visOpts.getSelectedItem().equals(visuals[2]) && plotOpts.getSelectedItem().equals(plots[0]) 
+                || ((visOpts.getSelectedItem().equals(visuals[4]) || visOpts.getSelectedItem().equals(visuals[5]))) && plotOpts.getSelectedItem().equals(plots[0]))
                 
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
             
             else if (devicesFound.size() < 50 && ((plotOpts.getSelectedItem().equals(plots[1])) || (plotOpts.getSelectedItem().equals(plots[2]))
-            	|| (plotOpts.getSelectedItem().equals(plots[3]))))
+                || (plotOpts.getSelectedItem().equals(plots[3]))))
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: graph detail is too small for the number of devices found.", "Error", JOptionPane.ERROR_MESSAGE);   
 
             else {
@@ -873,8 +918,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 // Used to obtain index in frequency array - then will be used to access int values for plot
                 frequencyPlotValues[0][0] = devicesFound.size();
                 frequencyPlotValues[0][1] = devicesFound.size()/5;
-                int index = -1;
-                for (int i=0;i<plots.length;i++) {
+                index = -1;
+                for (int i=0; i<plots.length; i++) {
                     if (plots[i].equals(plotOpts.getSelectedItem())) {
                         index = i;
                         break;
@@ -887,38 +932,40 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                     sensorString = "Sensor " + i;
                     graphPanels[i-1] = new JPanel(new BorderLayout());
 
-                    // Iterate over devices found and extract individual sensor values into linked list
+                    // Iterate over devices found and extract individual sensor values into linked list CHANGE!!!
                     listIt = devicesFound.listIterator();
                     sensorPoints = new LinkedList<Integer>();
                     datePoints = new LinkedList<String>();
 
-                    int deviceCounter = 0;
-                    double increment = (devicesFound.size()/frequencyPlotValues[index][0]);
-                    double runningIncrement = 0;
-                    int dateInc = frequencyPlotValues[index][1] - 1;
+                    // Work out increments between sensor points
+                    deviceCounter = 0;
+                    increment = (devicesFound.size()/frequencyPlotValues[index][0]);
+                    runningIncrement = 0;
+                    dateInc = frequencyPlotValues[index][1] - 1;
 
                     // Add occasional date between data points - used to display on graph component
                     while (listIt.hasNext()) {
-
                         deviceToCheck = listIt.next();
 
+                        // Obtain points every now and again (increment)
                         if (deviceCounter == runningIncrement && sensorPoints.size() < frequencyPlotValues[index][0]) { 
                             runningIncrement += increment;
 
+                            // Add the sensor point
                             try {
                                 addSensorPoint(deviceToCheck, sensInc);
                             }
                             catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-               					JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
+                                JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
                             }
                             finally {
-                            	dateInc++;
+                                dateInc++;
 
-	                            // For every X data plots, write date string on X axis
-	                            if (dateInc == frequencyPlotValues[index][1]) {
-	                                addDatePoint(deviceToCheck);
-	                                dateInc = 0;
-	                            }
+                                // For every X data plots, write date string on X axis
+                                if (dateInc == frequencyPlotValues[index][1]) {
+                                    addDatePoint(deviceToCheck);
+                                    dateInc = 0;
+                                }
                             }
                         }
                         deviceCounter++;
@@ -930,64 +977,60 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                         addDatePoint(deviceToCheck);
                     }
                     catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-               			JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
+                        JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
                     }
                     finally {
+                        // Display error message detailing data that couldn't be plotted
+                        if (sensorPoints.size() == 0) {
+                            errorLbl = new JLabel("Data could not be plotted for this sensor. See table below for details:");
+                            errorLbl.setHorizontalAlignment(SwingConstants.CENTER);
+                            errorLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
+                            errorLbl.setForeground(Color.RED);
+                            graphPanels[i-1].add("Center", errorLbl);
+                            graphTabPane.add(sensorString, graphPanels[i-1]);
+                        }
+                        else {
+                            // Prepare title string for graph plotting
+                            title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
 
-                    	// Display error message detailing data that couldn't be plotted
-	                    if (sensorPoints.size() == 0) {
-	                        JLabel errorLbl = new JLabel("Data could not be plotted for this sensor. See table below for details:");
-	                        errorLbl.setHorizontalAlignment(SwingConstants.CENTER);
-	                        errorLbl.setFont(new Font("Helvetica", Font.BOLD, 15));
-	                        errorLbl.setForeground(Color.RED);
-	                        graphPanels[i-1].add("Center", errorLbl);
-	                        graphTabPane.add(sensorString, graphPanels[i-1]);
-	                    }
-	                    else {
-	                        // Prepare title string for graph plotting
-	                        title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
+                            // Get Max,Min,Avg data from the specific plot into a single string
+                            graphDetails = data.getGraphDetails(sensInc-1, sensInc+1, deviceToCheck.getAddress());
 
-	                        // Get Max,Min,Avg data from the specific plot into a single string
-	                        String graphDetails = data.getGraphDetails(sensInc-1, sensInc+1, deviceToCheck.getAddress());
+                            // Ensure sensor points are sorted in ascending order
+                            Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
 
-	                        // Ensure sensor points are sorted in ascending order
-    						Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
+                            // Add new graph type component to new panel
+                            if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, false));
+                            
+                            else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, false));
 
-	                        // Add new graph type component to new panel
-	                        if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph")) 
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, false));
-	                        
-	                        else if (visOpts.getSelectedItem().equals("Sensor-Value-Over-Time Line Graph (DASHED)")) 
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, false));
+                            else if (visOpts.getSelectedItem().equals("Scatter Graph")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, true, false));
 
-	                        else if (visOpts.getSelectedItem().equals("Scatter Graph")) 
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, true, false));
+                            else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, true, false));
 
-	                        else if (visOpts.getSelectedItem().equals("Scatter Graph (JOINED)")) 
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, true, false));
+                            else if (visOpts.getSelectedItem().equals("Bar Graph")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, true));
+                            
+                            else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)")) 
+                                graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, true));
+                            
+                            // Add new panel to tab pane 
+                            graphTabPane.add(sensorString, graphPanels[i-1]);
 
-							else if (visOpts.getSelectedItem().equals("Bar Graph")) 
-								graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, false, false, true));
-							
-							else if (visOpts.getSelectedItem().equals("Bar Graph (DASHED)")) 
-	                            graphPanels[i-1].add("Center", new GraphComponent(sensorPoints, datePoints, flaggedDataPoints, title_details, graphDetails, true, false, true));
-							
+                            // Add new export button to each panel
+                            exportBtns[i-1] = new JButton("Save To File");
+                            exportBtns[i-1].addActionListener(this);
+                            graphPanels[i-1].add("South", exportBtns[i-1]); 
 
-	                        // Add new panel to tab pane 
-	                        graphTabPane.add(sensorString, graphPanels[i-1]);
-
-	                        // Add new export button to each panel
-	                        exportBtns[i-1] = new JButton("Save To File");
-	                        exportBtns[i-1].addActionListener(this);
-	                        graphPanels[i-1].add("South", exportBtns[i-1]); 
-
-	                    }
-
-	                    // Increase sensor value to extract particular points from data string
-	                    sensInc += 2;
+                        }
+                        // Increase sensor value to extract particular points from data string
+                        sensInc += 2;
                     }
                 }
-
                 // Further graph window details
                 graphWindow.add(graphTabPane);
                 graphWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -1004,21 +1047,22 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     private void populateSensorsCombo()
     {
-    	sensorOpts.removeAllItems();
-    	sensorOptsEvents.removeAllItems();
-    	deviceStatOpts.removeAllItems();
+        sensorOpts.removeAllItems();
+        sensorOptsEvents.removeAllItems();
+        deviceStatOpts.removeAllItems();
 
-		// Populate the sensors combobox
-		LinkedList<DataLine> sensorEventsList = new LinkedList<DataLine>();
-		sensorEventsList = data.findUniqueDevices();
+        // Populate the sensors combobox
+        sensorEventsList = new LinkedList<DataLine>();
+        sensorEventsList = data.findUniqueDevices();
 
         listIt = sensorEventsList.listIterator();
 
+        // Add each address to the available options in each combobox on the UI
         while (listIt.hasNext()) {
-        	deviceToAdd = listIt.next();
-        	sensorOpts.addItem(deviceToAdd.getAddress());
-        	sensorOptsEvents.addItem(deviceToAdd.getAddress());
-        	deviceStatOpts.addItem(deviceToAdd.getAddress());
+            deviceToAdd = listIt.next();
+            sensorOpts.addItem(deviceToAdd.getAddress());
+            sensorOptsEvents.addItem(deviceToAdd.getAddress());
+            deviceStatOpts.addItem(deviceToAdd.getAddress());
         }
     }
 
@@ -1027,74 +1071,74 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     private void displaySensorEvents()
     {
-    	// Clear table contents
-   	 	tableModel = (DefaultTableModel) eventsTable.getModel();
-   	 	tableModel.getDataVector().removeAllElements();
-   		tableModel.fireTableDataChanged();
+        // Clear table contents
+        tableModel = (DefaultTableModel) eventsTable.getModel();
+        tableModel.getDataVector().removeAllElements();
+        tableModel.fireTableDataChanged();
 
-   		// Clear events found linked list
+        // Clear events found linked list
         while (!eventsFound.isEmpty())
             eventsFound.removeFirst();
 
-   		LinkedList<DataLine> deviceEventsList = data.findDeviceByAddress(sensorOptsEvents.getSelectedItem().toString());
+        // Initialise relevant variables to to store devices found and means found for those devices
+        deviceEventsList = data.findDeviceByAddress(sensorOptsEvents.getSelectedItem().toString());
+        sensorMeans = new ArrayList<Integer>();
+        errorInConversion = false;
+        sensInc = 1;
 
-		ArrayList<Integer> sensorMeans = new ArrayList<Integer>();
-
-		boolean errorInConversion = false;
-		sensInc = 1;
-
+        // Add each mean to the linked list for displaying
         for (int i = 1; i <= 10; i++) {
-        	sensorMeans.add(data.getAvgVal(sensInc-1, sensInc+1, deviceEventsList));
-        	sensInc += 2;
+            sensorMeans.add(data.getAvgVal(sensInc-1, sensInc+1, deviceEventsList));
+            sensInc += 2;
         }
 
-        String deviationString = "No Events Found";
+        // Value will change on each iteration of the while loop
+        deviationString = "No Events Found";
 
-		// Iterate over linked list and add to output
+        // Iterate over linked list and add to output
         listIt = deviceEventsList.listIterator();
-
         while (listIt.hasNext()) {
 
             // Obtain next device properties
             deviceToAdd = listIt.next();
+            deviationValues = new ArrayList<Integer>();
 
-			ArrayList<Integer> deviationValues = new ArrayList<Integer>();
-
-            int deviationValue = 0;
+            // Initialise variables for scanning sensor means
+            deviationValue = 0;
             sensInc = 1;
             errorInConversion = false;
+            sensorIndex = Integer.parseInt(sensorNoOpts.getSelectedItem().toString()) * 2;
 
-            int sensorIndex = Integer.parseInt(sensorNoOpts.getSelectedItem().toString()) * 2;
+            // Obtain deviation from mean for each sensor mean values
+            try {
+                deviationValue = data.getDeviationFromMean(sensorMeans.get((sensorIndex/2) - 1), Integer.parseInt(deviceToAdd.getSensorData().substring(sensorIndex-2, sensorIndex), 16));
+            }
+            catch (NumberFormatException | StringIndexOutOfBoundsException e) {
+                errorInConversion = true;
+            }
 
-        	try {
-        		deviationValue = data.getDeviationFromMean(sensorMeans.get((sensorIndex/2) - 1), Integer.parseInt(deviceToAdd.getSensorData().substring(sensorIndex-2, sensorIndex), 16));
-        	}
-        	catch (NumberFormatException | StringIndexOutOfBoundsException e) {
-        		errorInConversion = true;
-        	}
-
-
-        	if (!errorInConversion)
-            	if (deviationValue >= 20) {
-					deviationString = "Sensor " + sensorIndex/2 + " on device " + deviceToAdd.getAddress() + " showed a deviation value of " + deviationValue + "% on " + deviceToAdd.getDateObtained();
-            		
-            		// Store properties from data line
-		       		Object[] dataToAdd = {deviationString};
-		       		eventsFound.add(deviationString);
-		            
-		        	// Add row to table
-		        	tableModel.addRow(dataToAdd);
-            	}
-        	sensInc += 2;
+            // If successfull and an event has been detected, update the string and add to table
+            if (!errorInConversion)
+                if (deviationValue >= 20) {
+                    deviationString = "Sensor " + sensorIndex/2 + " on device " + deviceToAdd.getAddress() + " showed a deviation value of " + deviationValue + "% on " + deviceToAdd.getDateObtained();
+                    
+                    // Store properties from data line
+                    dataToAdd = new Object[] {deviationString};
+                    eventsFound.add(deviationString);
+                    
+                    // Add row to table
+                    tableModel.addRow(dataToAdd);
+                }
+            sensInc += 2;
         }
 
+        // Error checking/range checking
         if (deviationString.equals("No Events Found")) {
-        	Object[] dataToAdd = {deviationString};
-        	tableModel.addRow(dataToAdd);
+            Object[] dataToAdd = {deviationString};
+            tableModel.addRow(dataToAdd);
         }
-
         if (errorInConversion)
-        	JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
+            JOptionPane.showMessageDialog(new JFrame(), "Error - some data could not be converted successfully for this device.", "Error", JOptionPane.ERROR_MESSAGE);   
     }
 
     /**
@@ -1102,83 +1146,97 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      */
     private void populateTableData() 
     {
-		// Clear table contents
-   	 	tableModel = (DefaultTableModel) table.getModel();
-   	 	tableModel.getDataVector().removeAllElements();
-   		tableModel.fireTableDataChanged();
+        // Clear table contents
+        tableModel = (DefaultTableModel) table.getModel();
+        tableModel.getDataVector().removeAllElements();
+        tableModel.fireTableDataChanged();
         
         // If user has searched for data, display that, otherwise show all
         devicesFound = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
 
         if (devicesFound.size() != 0) {
-        	// Sort the data in the table from user input
-	        data.sortData(sortOpts.getSelectedItem().toString(), devicesFound, sorts);
+            // Sort the data in the table from user input
+            data.sortData(sortOpts.getSelectedItem().toString(), devicesFound, sorts);
 
-	        // Iterate over linked list and add to output
-	        listIt = devicesFound.listIterator();
+            // Iterate over linked list and add to output
+            listIt = devicesFound.listIterator();
 
-	        while (listIt.hasNext()) {
-	            // Obtain next device properties
-	            deviceToAdd = listIt.next();
+            while (listIt.hasNext()) {
+                // Obtain next device properties
+                deviceToAdd = listIt.next();
 
-	            // Store properties from data line
-	            Object[] dataToAdd = {
-	                deviceToAdd.getDateObtained(),
-	                deviceToAdd.getType(), 
-	                deviceToAdd.getVersion(), 
-	                Integer.parseInt(deviceToAdd.getCounter(), 16),
-	                deviceToAdd.getVia(),
-	                deviceToAdd.getAddress(), 
-	                deviceToAdd.getStatus(), 
-	                deviceToAdd.getSensorData(), 
-	            };
-	                
-	            // Add row to table
-	            tableModel.addRow(dataToAdd);
-	        }
+                // Store properties from data line
+                Object[] dataToAdd = {
+                    deviceToAdd.getDateObtained(),
+                    deviceToAdd.getType(), 
+                    deviceToAdd.getVersion(), 
+                    Integer.parseInt(deviceToAdd.getCounter(), 16),
+                    deviceToAdd.getVia(),
+                    deviceToAdd.getAddress(), 
+                    deviceToAdd.getStatus(), 
+                    deviceToAdd.getSensorData(), 
+                };
+                    
+                // Add row to table
+                tableModel.addRow(dataToAdd);
+            }
 
-	        // Results found data
-	        if (devicesFound.size() == 0)
-	            resultsFoundLbl.setText("No Results Found");
-	        else
-	            resultsFoundLbl.setText("Results Found: " + devicesFound.size());
+            // Results found data
+            if (devicesFound.size() == 0)
+                resultsFoundLbl.setText("No Results Found");
+            else
+                resultsFoundLbl.setText("Results Found: " + devicesFound.size());
         }
-        
-   	}
+    }
 
+    /**
+     * Method to add a sensor point and detect if an error has been found - if so, add to linked list of flagged data points.
+     * @param deviceToCheck The current device under consideration.
+     * @param sensInc The index for which sensor values can be obtained for the given device to check.
+     */
     private void addSensorPoint(DataLine deviceToCheck, int sensInc) 
     {
         sensorValue = Integer.parseInt(deviceToCheck.getSensorData().substring(sensInc-1,sensInc+1), 16);
         sensorPoints.add(sensorValue);
-    	System.out.println("date to check = " + deviceToCheck.getDateObtained() + " and value = " + sensorValue);
 
+        // Check for errors
         if (!(deviceToCheck.getStatus().equals("0") || deviceToCheck.getStatus().equals("00"))) {
-        	flaggedDataPoints.add(0); //flagged ("fail")
+            flaggedDataPoints.add(0); // 0 =flagged ("fail")
         }
         else {
-        	flaggedDataPoints.add(1); //success
+            flaggedDataPoints.add(1); // 1 =success
         }
     }
 
+    /**
+     * Method to add a date value to the linked list of date points.
+     * @param deviceToCheck The current device under consideration.
+     */
     private void addDatePoint(DataLine deviceToCheck) 
     {
         dateValue = deviceToCheck.getDateObtained();
         datePoints.add(dateValue);
     }
 
+    /**
+     * Method to find the statistics for a given device (used on the statistics screen).
+     * The user can view maximum, minimum and average values in the form of bar graphs.
+     * @param device The curretn device under consideration.
+     */
     private void displayStatisticsForSensor(String device)
     {
-    	// Error checking
+        // Error checking
         for (int i = 1; i <= 10; i++)
             if (data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device)) == -1 || data.getMinVal(i-1, i+1, data.findDeviceByAddress(device)) == -1) {
-            	JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
-            	break;
+                JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+                break;
             }
 
+        // Find statistics for the given device
         for (int i = 1; i < 20; i+=2) {
-        	sensorMinStatValues[i/2] = data.getMinVal(i-1, i+1, data.findDeviceByAddress(device));
-        	sensorMaxStatValues[i/2] = data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device));
-        	sensorAvgStatValues[i/2] = data.getAvgVal(i-1, i+1, data.findDeviceByAddress(device));
+            sensorMinStatValues[i/2] = data.getMinVal(i-1, i+1, data.findDeviceByAddress(device));
+            sensorMaxStatValues[i/2] = data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device));
+            sensorAvgStatValues[i/2] = data.getAvgVal(i-1, i+1, data.findDeviceByAddress(device));
         }
     }
 
@@ -1187,7 +1245,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * The user selects a row from the device table and the window appears.
      */
     private void displayInfoScreen() 
-    {    	
+    {       
         infoWindow = new JFrame();
         mainInfoPanel = new JPanel(new BorderLayout());
         topInfoPanel = new JPanel();
@@ -1202,25 +1260,25 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         infoTitle.setForeground(new Color(9, 137, 11));
         topInfoPanel.add(infoTitle);
 
-        JLabel deviceAddressLbl = new JLabel("Device Address: ");
-        JLabel deviceTypeLbl = new JLabel("Device Type: ");
-        JLabel deviceVersionLbl = new JLabel("Device version: ");
-        JLabel errorsMissedLbl = new JLabel("Errors missed by Receiver (current total): ");
-        JLabel viaLbl = new JLabel("Receiver that picked up this Transmission: ");
-        JLabel statusLbl = new JLabel("Device Status: ");
-        JLabel dateLbl = new JLabel("Date Obtained: ");
-        JLabel dataLbl = new JLabel("Sensor Data:");
+        deviceAddressLbl = new JLabel("Device Address: ");
+        deviceTypeLbl = new JLabel("Device Type: ");
+        deviceVersionLbl = new JLabel("Device version: ");
+        errorsMissedLbl = new JLabel("Errors missed by Receiver (current total): ");
+        viaLbl = new JLabel("Receiver that picked up this Transmission: ");
+        statusLbl = new JLabel("Device Status: ");
+        dateLbl = new JLabel("Date Obtained: ");
+        dataLbl = new JLabel("Sensor Data:");
 
-        JLabel addressDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 5).toString());
-        JLabel typeDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 1).toString());
-        JLabel versionDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 2).toString());
-        JLabel errorsDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 3).toString());
-        JLabel viaDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 4).toString());
-        JLabel statusDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 6).toString());
-        JLabel dateDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 0).toString());
-        JLabel dataDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 7).toString());
+        addressDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 5).toString());
+        typeDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 1).toString());
+        versionDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 2).toString());
+        errorsDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 3).toString());
+        viaDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 4).toString());
+        statusDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 6).toString());
+        dateDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 0).toString());
+        dataDetails = new JLabel(table.getValueAt(table.getSelectedRow(), 7).toString());
 
-        JLabel generalNotesLbl = new JLabel("General Notes: ");
+        generalNotesLbl = new JLabel("General Notes: ");
         notesDetailsLbl = new JLabel("No problems detected");
 
         midInfoPanel.add(deviceAddressLbl);
@@ -1279,26 +1337,31 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * Method to insert all relevant sensor data into the info table on the info pop up window.
      * @param dataString The sensor data string to break down and display to the user.
+     * @param statusString The current status of the sensor under consideration.
      */
     private void populateInfoData(String dataString, String statusString) 
     {
-    	sensInc = 1;
-        for (int i = 1; i <= dataString.length()/2; i++) {
+        sensInc = 1;
 
-        	try {
-        		sensorDecValue = Integer.parseInt(dataString.substring(sensInc-1,sensInc+1), 16);
-        		if (!(statusString.equals("00") || statusString.equals("0")))
-        			notesDetailsLbl.setText("Errors found - see status field.");
-        	}
-        	catch (NumberFormatException e) {
-        		notesDetailsLbl.setText("Errors found - couldn't recognise some sensor data.");
-        		sensorDecValue = 0;
-        	}
+        // Iterate over all the sensor data in the data string and find errors
+        for (int i = 1; i <= dataString.length()/2; i++) {
+            try {
+                sensorDecValue = Integer.parseInt(dataString.substring(sensInc-1,sensInc+1), 16);
+                if (!(statusString.equals("00") || statusString.equals("0")))
+                    notesDetailsLbl.setText("Errors found - see status field.");
+            }
+            catch (NumberFormatException e) {
+                notesDetailsLbl.setText("Errors found - couldn't recognise some sensor data.");
+                sensorDecValue = 0;
+            }
+
+            // Add sensor number, decimal value equivalent and hexadecimal version into the table
             Object[] dataToAdd = {
                 Integer.toString(i),
                 sensorDecValue,
                 sensorHexValue = dataString.substring(sensInc-1,sensInc+1),
             };
+
             infoTableModel.addRow(dataToAdd);
             sensInc += 2;
         } 
@@ -1326,46 +1389,46 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     /**
      * Method to write all the events found in the events table to a text file output.
+     * @param eventsFound The linked list of all the events found for a particular device.
+     * @param deviceAddress The current device under consideration.
      */
     private void saveEventsToFile(LinkedList<String> eventsFound, String deviceAddress) 
     {
-        JFileChooser chooser = new JFileChooser();
-	    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  
-	    chooser.showSaveDialog(null);
+        chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  
+        chooser.showSaveDialog(null);
+        filename = chooser.getSelectedFile().toString() + ".txt";
+        eventsIt = eventsFound.listIterator();       
 
-	    String filename = chooser.getSelectedFile().toString() + ".txt";
-    	ListIterator<String> eventsIt = eventsFound.listIterator();       
-    	BufferedWriter file;   
-
-    	System.out.println(eventsFound.size());
-
-    	try {
-    		file = new BufferedWriter(new FileWriter(filename));
-    	}
-    	catch (IOException e) {
-            JOptionPane.showMessageDialog(new JFrame(), "No File Saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
-            return;
-    	}
-
-        while (eventsIt.hasNext()) {
-        	String nextEvent = eventsIt.next();
-   			try {
-   				file.write(nextEvent);
-   				file.newLine();
-   			}
-   			catch (IOException e) {
-   				return;
-   			}
-   			
-        }
-
+        // Create a new text file and the users chosen location
         try {
-        	file.close();
-        	JOptionPane.showMessageDialog(new JFrame(), "Text file saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
+            file = new BufferedWriter(new FileWriter(filename));
         }
         catch (IOException e) {
-        	JOptionPane.showMessageDialog(new JFrame(), "No text file saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
-        	return;
+            JOptionPane.showMessageDialog(new JFrame(), "No File Saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
+            return;
+        }
+
+        // Write each event to a text file on separate lines
+        while (eventsIt.hasNext()) {
+            nextEvent = eventsIt.next();
+            try {
+                file.write(nextEvent);
+                file.newLine();
+            }
+            catch (IOException e) {
+                return;
+            } 
+        }
+
+        // Close the file and check for success
+        try {
+            file.close();
+            JOptionPane.showMessageDialog(new JFrame(), "Text file saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(new JFrame(), "No text file saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
+            return;
         }
     }   
 }
