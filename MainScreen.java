@@ -145,6 +145,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // STATISTICS panel components
     private JLabel statsLbl; 
+    private JButton findStatsForDeviceBtn;
+    private JComboBox<String> deviceStatOpts = new JComboBox<String>();
     private int[] errorStatValues = {0,0,0};
     private int[] sensorMinStatValues = new int[10];
     private int[] sensorMaxStatValues = new int[10];
@@ -159,6 +161,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JTable eventsTable;
     private final String[] eventNames = {"Event Summary For This Device"};
     private JButton saveEventsToFileBtn;
+    private LinkedList<String> eventsFound = new LinkedList<String>();
 
     /**
      * Constructor to initialise panels and place components on the UI.
@@ -393,7 +396,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             }
         };
         table.getSelectionModel().addListSelectionListener(this);
-        table.setRowHeight(20);
+        table.setRowHeight(30);
 
         // Set the column widths in the table
         columnModel = table.getColumnModel();
@@ -447,8 +450,8 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         // STATISTICS panels
         statsPanel = new JPanel(new BorderLayout());
         topStatPanel = new JPanel(new GridBagLayout());
-        midStatPanel = new JPanel(new GridLayout(5,1,20,20));
-        midStatPanel.setBorder(new EmptyBorder(20,20,20,20));
+        midStatPanel = new JPanel(new GridLayout(5,1,40,40));
+        midStatPanel.setBorder(new EmptyBorder(10,10,10,10));
         botStatPanel = new JPanel(new GridBagLayout());
 
         statsPanel.add("North", topStatPanel);
@@ -461,16 +464,48 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         statsLbl.setForeground(Color.RED);
         c.fill = GridBagConstraints.HORIZONTAL;
         c.ipady = 10;
-        c.weightx = 0.5;
+        c.gridheight = 1;
         c.gridx = 0;
         c.gridy = 0;
         c.insets = new Insets(10,0,10,0);
         topStatPanel.add(statsLbl, c);
 
-        midStatPanel.add(new BarGraphComponent(errorStatValues, "Error Statistics", 1));
+        JLabel findDeviceLbl = new JLabel("Select a Device:");
+		findDeviceLbl.setHorizontalAlignment(SwingConstants.CENTER);
+        findDeviceLbl.setFont(new Font("Helvetica", Font.ITALIC, 22));
+        findDeviceLbl.setForeground(Color.GRAY);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 1;
+        c.insets = new Insets(10,0,10,0);
+        topStatPanel.add(findDeviceLbl, c);
+
+        deviceStatOpts.addItem("<No File Opened>");
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 10;
+        c.gridheight = 1;
+        c.gridx = 0;
+        c.gridy = 2;
+        c.insets = new Insets(10,250,10,250);
+        topStatPanel.add(deviceStatOpts, c);
+
+        findStatsForDeviceBtn = new JButton("Show Statistics");
+        findStatsForDeviceBtn.addActionListener(this);
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.ipady = 20;
+        c.gridx = 0;
+        c.gridy = 3;
+        c.gridheight = 1;
+        c.gridwidth = 1;
+        c.insets = new Insets(5,250,40,250);
+        topStatPanel.add(findStatsForDeviceBtn, c);
+
         midStatPanel.add(new BarGraphComponent(sensorMinStatValues, "Minimum Sensor Values", 2));
         midStatPanel.add(new BarGraphComponent(sensorMaxStatValues, "Maximum Sensor Values", 2));
         midStatPanel.add(new BarGraphComponent(sensorAvgStatValues, "Average Sensor Values", 2));
+        midStatPanel.add(new BarGraphComponent(errorStatValues, "General Error Statistics", 1));
 
         statisticsFileLbl = new JLabel("No File Opened");
         statisticsFileLbl.setHorizontalAlignment(SwingConstants.CENTER);
@@ -591,8 +626,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 return false;
             }
         };
-        eventsTable.getSelectionModel().addListSelectionListener(this);
-        eventsTable.setRowHeight(20);
+        eventsTable.setRowHeight(30);
         Object[] noCsv = {"<Search for a device>"};
         tableModel.addRow(noCsv);
         scrollPane = new JScrollPane(eventsTable);
@@ -671,19 +705,6 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 errorStatValues[1] = errorsArray[0];
                 errorStatValues[2] = errorsArray[1];
 
-                // Error checking
-                for (int i = 1; i <= 10; i++)
-	                if (data.getMaxVal(i-1, i+1, data.getAllData()) == -1 || data.getMinVal(i-1, i+1, data.getAllData()) == -1) {
-	                	JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
-	                	break;
-	                }
-
-                for (int i = 1; i <= 10; i++) {
-                	sensorMinStatValues[i-1] = data.getMinVal(i-1, i+1, data.getAllData());
-                	sensorMaxStatValues[i-1] = data.getMaxVal(i-1, i+1, data.getAllData());
-                	sensorAvgStatValues[i-1] = data.getAvgVal(i-1, i+1, data.getAllData());
-                }
-
                 // Update home labels
                 linesLbl.setText(Integer.toString(data.getNoOfRecords()));
                 errorsLbl.setText(Integer.toString(data.findNoOfErrors()[0]));
@@ -747,9 +768,16 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             } 
         }
 
+        // Check for button click on statistics screen when selecting a device to view statistics for
+        else if (e.getSource() == findStatsForDeviceBtn) {
+        	displayStatisticsForSensor(deviceStatOpts.getSelectedItem().toString());
+        	revalidate();
+        	repaint();
+        }
+
         // Check for button export button click on statistics screen
         else if (e.getSource() == exportBtn) {
-            saveToFile(midStatPanel);
+            saveGraphToFile(midStatPanel);
         }
 
         // Check for button click on events panel to display all events for a particular sensor
@@ -762,7 +790,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
         // Check for button click on saving all events found to a text file (output)
         else if (e.getSource() == saveEventsToFileBtn) {
-        	System.out.println("SAVE!");
+        	saveEventsToFile(eventsFound, sensorOpts.getSelectedItem().toString());
         }
 
         // Check for close button on the info pop up window
@@ -774,7 +802,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         else {
             for (int i = 0; i < exportBtns.length; i++)
                 if (e.getSource() == exportBtns[i])
-                    saveToFile(graphPanels[i]);
+                    saveGraphToFile(graphPanels[i]);
         }    
     }
 
@@ -801,6 +829,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
             
+            else if (devicesFound.size() < 50 && ((plotOpts.getSelectedItem().equals(plots[1])) || (plotOpts.getSelectedItem().equals(plots[2]))
+            	|| (plotOpts.getSelectedItem().equals(plots[3]))))
+                JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: graph detail is too small for the number of devices found.", "Error", JOptionPane.ERROR_MESSAGE);   
+
             else {
                 sensInc = 1;
 
@@ -882,7 +914,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 	                        title_details = ("Sensor " + i + " - Device Address " + deviceToCheck.getAddress());
 
 	                        // Get Max,Min,Avg data from the specific plot into a single string
-	                        String graphDetails = data.getGraphDetails(sensorPoints, sensInc-1, sensInc);
+	                        String graphDetails = data.getGraphDetails(sensInc-1, sensInc+1, deviceToCheck.getAddress());
 
 	                        // Ensure sensor points are sorted in ascending order
     						Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
@@ -940,6 +972,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     {
     	sensorOpts.removeAllItems();
     	sensorOptsEvents.removeAllItems();
+    	deviceStatOpts.removeAllItems();
 
 		// Populate the sensors combobox
 		LinkedList<DataLine> sensorEventsList = new LinkedList<DataLine>();
@@ -951,6 +984,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         	deviceToAdd = listIt.next();
         	sensorOpts.addItem(deviceToAdd.getAddress());
         	sensorOptsEvents.addItem(deviceToAdd.getAddress());
+        	deviceStatOpts.addItem(deviceToAdd.getAddress());
         }
     }
 
@@ -963,6 +997,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
    	 	tableModel = (DefaultTableModel) eventsTable.getModel();
    	 	tableModel.getDataVector().removeAllElements();
    		tableModel.fireTableDataChanged();
+
+   		// Clear events found linked list
+        while (!eventsFound.isEmpty())
+            eventsFound.removeFirst();
 
    		LinkedList<DataLine> deviceEventsList = data.findDeviceByAddress(sensorOptsEvents.getSelectedItem().toString());
 
@@ -1008,6 +1046,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             		
             		// Store properties from data line
 		       		Object[] dataToAdd = {deviationString};
+		       		eventsFound.add(deviationString);
 		            
 		        	// Add row to table
 		        	tableModel.addRow(dataToAdd);
@@ -1091,6 +1130,22 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     {
         dateValue = deviceToCheck.getDateObtained();
         datePoints.add(dateValue);
+    }
+
+    private void displayStatisticsForSensor(String device)
+    {
+    	// Error checking
+        for (int i = 1; i <= 10; i++)
+            if (data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device)) == -1 || data.getMinVal(i-1, i+1, data.findDeviceByAddress(device)) == -1) {
+            	JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+            	break;
+            }
+
+        for (int i = 1; i < 20; i+=2) {
+        	sensorMinStatValues[i/2] = data.getMinVal(i-1, i+1, data.findDeviceByAddress(device));
+        	sensorMaxStatValues[i/2] = data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device));
+        	sensorAvgStatValues[i/2] = data.getAvgVal(i-1, i+1, data.findDeviceByAddress(device));
+        }
     }
 
     /**
@@ -1219,7 +1274,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
      * Method to save painted components on a panel to a png file in the users chosen directory.
      * @param panel The panel that contains the components to be saved to a png file.
      */
-    private void saveToFile(JPanel panel) 
+    private void saveGraphToFile(JPanel panel) 
     {
         selectDest = new JFileChooser();
         selectDest.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
@@ -1229,12 +1284,55 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         panel.paint(img.getGraphics());
         try {
             ImageIO.write(img, "png", new File(selectDest.getSelectedFile().getPath() + ".png"));
-            JOptionPane.showMessageDialog(new JFrame(), "Graph saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
+            JOptionPane.showMessageDialog(new JFrame(), "Graph(s) saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
         } catch (Exception ex) {
+            JOptionPane.showMessageDialog(new JFrame(), "No file saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
+        }
+    }   
+
+    /**
+     * Method to write all the events found in the events table to a text file output.
+     */
+    private void saveEventsToFile(LinkedList<String> eventsFound, String deviceAddress) 
+    {
+        JFileChooser chooser = new JFileChooser();
+	    chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);  
+	    chooser.showSaveDialog(null);
+
+	    String filename = chooser.getSelectedFile().toString() + ".txt";
+    	ListIterator<String> eventsIt = eventsFound.listIterator();       
+    	BufferedWriter file;   
+
+    	System.out.println(eventsFound.size());
+
+    	try {
+    		file = new BufferedWriter(new FileWriter(filename));
+    	}
+    	catch (IOException e) {
             JOptionPane.showMessageDialog(new JFrame(), "No File Saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
+            return;
+    	}
+
+        while (eventsIt.hasNext()) {
+        	String nextEvent = eventsIt.next();
+   			try {
+   				file.write(nextEvent);
+   				file.newLine();
+   			}
+   			catch (IOException e) {
+   				return;
+   			}
+   			
+        }
+
+        try {
+        	file.close();
+        	JOptionPane.showMessageDialog(new JFrame(), "Text file saved successfully!", "Success", JOptionPane.PLAIN_MESSAGE);   
+        }
+        catch (IOException e) {
+        	JOptionPane.showMessageDialog(new JFrame(), "No text file saved.", "Info", JOptionPane.PLAIN_MESSAGE);   
+        	return;
         }
     }   
 }
-
-
 

@@ -349,29 +349,20 @@ public class SensorData
      * Method to get string details of the maximum, minimum and average values for each graph plot.
      * @return The string details for each graph plot.
      */
-    public String getGraphDetails(LinkedList<Integer> sensorPoints, int sensLow, int sensHigh)
+    public String getGraphDetails(int sensLow, int sensHigh, String address)
     {
         int runningTotal = 0;
-        int noOfDevices = sensorPoints.size();
+        int noOfDevices = getAllData().size();
 
-        //Collections.sort(sensorPoints);
-        int maxVal = sensorPoints.getLast();
-        int minVal = sensorPoints.getFirst();
+        LinkedList<DataLine> graphDevices = findDeviceByAddress(address);
 
-        // Iterate over all data lines and add sensor value to running total
-        ListIterator<Integer> listItSens = sensorPoints.listIterator();
-
-        while (listItSens.hasNext()) {
-            Integer nextInt = listItSens.next();
-            runningTotal += nextInt;
-        }
-
-        int avgVal = runningTotal/noOfDevices;
+        int maxVal = getMaxVal(sensLow, sensHigh, graphDevices);
+        int minVal = getMinVal(sensLow, sensHigh, graphDevices);
+        int avgVal = getAvgVal(sensLow, sensHigh, graphDevices);
 
         String graphDetails = "Max: " + Integer.toString(maxVal) + ", Min: " + Integer.toString(minVal) + ", Average: " + Integer.toString(avgVal);
 
         return graphDetails;
-
     }
 
     /**
