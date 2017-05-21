@@ -21,10 +21,10 @@ import javax.swing.table.*;
 public class MainScreen extends JPanel implements ActionListener, ListSelectionListener 
 {
     // SensorData instance to obtain data lines from a CSV file
-    private SensorData data = new SensorData();
+    private SensorData data;
 
     // Used to store all devices found when a search has occurred
-    private LinkedList<DataLine> devicesFound = new LinkedList<DataLine>();
+    private LinkedList<DataLine> devicesFound;
 
     // Window and panels
     private JFrame window;
@@ -40,6 +40,16 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JPanel botSensPanel;
     private JPanel botSortPanel;
     private JPanel botVisPanel;
+
+    private JFrame graphWindow;
+    private JPanel graphPanel;
+    private JPanel[] graphPanels;
+
+    private JFrame infoWindow;
+    private JPanel mainInfoPanel;
+    private JPanel topInfoPanel;
+    private JPanel midInfoPanel;
+    private JPanel botInfoPanel;
 
     private JPanel statsPanel;
     private JPanel topStatPanel;
@@ -82,12 +92,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JLabel resultsFoundLbl;
     private JLabel plotOptLbl;
     private String selectedItem;
-    private JComboBox<String> sensorOpts = new JComboBox<String>();
+    private JComboBox<String> sensorOpts;
 
     // Table variables
-    private final String[] columnNames = {"Date Obtained", "Device Type", "Version", "Counter", "Via", "Device Address", "Status", "Sensor Data"};
-    private final int[] columnWidths = {150,40,20,60,10,60,20,170};
-    private LinkedList<Object> tableData = new LinkedList<Object>();
+    private final String[] columnNames;
+    private final int[] columnWidths;
     private JTable table;
     private TableColumnModel columnModel;
     private DefaultTableModel tableModel;
@@ -96,15 +105,10 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private DataLine deviceToAdd; 
 
     // Info pop up panel variables
-    private JFrame infoWindow;
-    private JPanel mainInfoPanel;
-    private JPanel topInfoPanel;
-    private JPanel midInfoPanel;
-    private JPanel botInfoPanel;
     private JLabel infoTitle;
     private JTable infoTable;
     private DefaultTableModel infoTableModel;
-    private final String[] infoNames = {"Sensor Number", "Data (Decimal)", "Data (Hex)"};
+    private final String[] infoNames;
     private int sensorDecValue;
     private String sensorHexValue;
     private JLabel notesDetailsLbl;
@@ -112,22 +116,20 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
 
     // Sort panel components
     private JLabel sortLbl;
-    private String[] sorts = {"Time since last seen (DESC)", "Time since last seen (ASC)", "Status Codes", "Messages missed by receiver"};
-    private JComboBox<String> sortOpts = new JComboBox<String>(sorts);
+    private String[] sorts;
+    private JComboBox<String> sortOpts;
     private JButton applySortBtn;
 
     // Visualise panel components
     private JLabel visualiseAsLbl;
-    private String[] visuals = {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Scatter Graph (JOINED)", "Bar Graph", "Bar Graph (DASHED)"};
-    private JComboBox<String> visOpts = new JComboBox<String>(visuals);
+    private String[] visuals;
+    private JComboBox<String> visOpts;
     private JButton applyVisBtn;
-    private String[] plots = {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
-    private JComboBox<String> plotOpts = new JComboBox<String>(plots);
-    private int[][] frequencyPlotValues = {{0,0}, {250,50}, {100,20}, {50,10}};
+    private String[] plots;
+    private JComboBox<String> plotOpts;
+    private int[][] frequencyPlotValues;
 
     // Graph Dialog Visualisation Window Variables
-    private JFrame graphWindow;
-    private JPanel graphPanel;
     private LinkedList<Integer> sensorPoints;
     private LinkedList<String> datePoints;
     private LinkedList<Integer> flaggedDataPoints;
@@ -138,36 +140,68 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private JTabbedPane graphTabPane;
     private int sensInc;
     private String sensorString;
-    private JButton[] exportBtns = new JButton[10];
-    private JPanel[] graphPanels = new JPanel[10];
+    private JButton[] exportBtns;
     private JFileChooser selectDest;
     private BufferedImage img;
 
     // STATISTICS panel components
     private JLabel statsLbl; 
     private JButton findStatsForDeviceBtn;
-    private JComboBox<String> deviceStatOpts = new JComboBox<String>();
-    private int[] errorStatValues = {0,0,0};
-    private int[] sensorMinStatValues = new int[10];
-    private int[] sensorMaxStatValues = new int[10];
-    private int[] sensorAvgStatValues = new int[10];
+    private JComboBox<String> deviceStatOpts;
+    private int[] errorStatValues;
+    private int[] sensorMinStatValues;
+    private int[] sensorMaxStatValues;
+    private int[] sensorAvgStatValues;
     private int[] errorsArray;
     private JLabel statisticsFileLbl;
 
     // EVENTS panel components
-    private JComboBox<String> sensorOptsEvents = new JComboBox<String>();
-    private JComboBox<String> sensorNoOpts = new JComboBox<String>();
+    private JComboBox<String> sensorOptsEvents;
+    private JComboBox<String> sensorNoOpts;
     private JButton findEventsForSensBtn;
     private JTable eventsTable;
-    private final String[] eventNames = {"Event Summary For This Device"};
+    private final String[] eventNames;
     private JButton saveEventsToFileBtn;
-    private LinkedList<String> eventsFound = new LinkedList<String>();
+    private LinkedList<String> eventsFound;
 
     /**
      * Constructor to initialise panels and place components on the UI.
      */
     public MainScreen() 
     {
+        // INSTANCE VARIABLES INITIALISATION
+        data = new SensorData();
+        devicesFound = new LinkedList<DataLine>();
+        eventsFound = new LinkedList<String>();
+
+        // String arrays for user options
+        columnNames = new String[] {"Date Obtained", "Device Type", "Version", "Counter", "Via", "Device Address", "Status", "Sensor Data"};
+        infoNames = new String[] {"Sensor Number", "Data (Decimal)", "Data (Hex)"};
+        sorts = new String[] {"Time since last seen (DESC)", "Time since last seen (ASC)", "Status Codes", "Messages missed by receiver"};
+        visuals = new String[] {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Scatter Graph (JOINED)", "Bar Graph", "Bar Graph (DASHED)"};
+        plots = new String[] {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
+        eventNames = new String[] {"Event Summary For This Device"};
+
+        // Statistics and graph variables and values
+        frequencyPlotValues = new int[][] {{0,0}, {250,50}, {100,20}, {50,10}};
+        errorStatValues = new int[] {0,0,0};
+        sensorMinStatValues = new int[10];
+        sensorMaxStatValues = new int[10];
+        sensorAvgStatValues = new int[10];
+        columnWidths = new int[] {150,40,20,60,10,60,20,170};
+
+        // Combobox and panel/button components to place on the UI
+        sensorOpts = new JComboBox<String>();
+        sensorOptsEvents = new JComboBox<String>();
+        sensorNoOpts = new JComboBox<String>();
+        deviceStatOpts = new JComboBox<String>();
+        sortOpts =  new JComboBox<String>(sorts);
+        plotOpts = new JComboBox<String>(plots);
+        visOpts = new JComboBox<String>(visuals);
+        graphPanels = new JPanel[10];
+        exportBtns = new JButton[10];
+
+        // UI COMPONENTS
         // HOME panels
         homePanel = new JPanel(new BorderLayout());
         topHomePanel = new JPanel(new GridBagLayout());
@@ -1335,4 +1369,3 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         }
     }   
 }
-
