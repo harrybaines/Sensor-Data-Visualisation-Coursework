@@ -23,21 +23,22 @@ public class SensorData
     private String fileString;
     private String extension;
     private BufferedReader reader;
-    private String line = "";
+    private String line;
     private String[] dataLine;
     private DataLine nextData;
 
+    // Linked lists to store data lines from CSV files and devices found from a user search
+    private LinkedList<DataLine> dataList;
+    private LinkedList<DataLine> devicesFound; 
+    private ListIterator<DataLine> listIt;
+    
     // Error variables
     private int[] errorsArray;
-    private LinkedList<String> uniqueErrorsList = new LinkedList<String>(); // Linked list to store unique errors !!!!
+    private LinkedList<String> uniqueErrorsList;
     private int counter;
 
-    private LinkedList<DataLine> dataList; // Linked list to store data lines from CSV file
-    private LinkedList<DataLine> devicesFound; // Linked list to store all devices found when a search has occured
-    private ListIterator<DataLine> listIt; // List iterator to iterate over all data lines
-
     /**
-     * Simple constructor to initialise the instance variables.
+     * Simple constructor to initialise the instance variables for calculating dates and storing data lines.
      */
     public SensorData() 
     {
@@ -46,11 +47,14 @@ public class SensorData
 
         dataList = new LinkedList<DataLine>();
         devicesFound = new LinkedList<DataLine>();
+        uniqueErrorsList = new LinkedList<String>();
         errorsArray = new int[2];
+        line = "";
     }
 
     /**
      * Allows the user to open a CSV file of their choice which contains sensor data.
+     * @return true if the file has been found and opened successfully, false otherwise.
      */
     public boolean findFile() 
     {
@@ -91,9 +95,6 @@ public class SensorData
                     // Show success dialog
                     JOptionPane.showMessageDialog(new JFrame(), "File successfully opened!");
                 }
-                catch (FileNotFoundException e) {
-                    return false;
-                }
                 catch (IOException e) {
                     return false;
                 }
@@ -114,21 +115,17 @@ public class SensorData
      */
     public LinkedList<DataLine> findDeviceByAddress(String address) 
     {
-        // Clear linked list
+        // Clear current user search linked list
         while (!devicesFound.isEmpty())
             devicesFound.removeFirst();
 
         // Iterate over data lines - search for device, add to linked list
         listIt = dataList.listIterator();
-
         DataLine deviceToAdd = listIt.next();
-
         int currentTime = deviceToAdd.getTime();
 
         while (listIt.hasNext()) {
-
             nextData = listIt.next();
-
             int nextTime = nextData.getTime();
 
             if (nextData.getAddress().equals(address) && nextTime != currentTime) {
@@ -137,33 +134,31 @@ public class SensorData
             }
         }
 
+        // Sort the devices found by time obtained
         Collections.sort(devicesFound, (DataLine data_1, DataLine data_2) -> data_2.getTime() - data_1.getTime());
         return devicesFound;
     }
+
     /**
      * Method to find the total number of errors and readings found for a particular device by address.
+     * @param address The device address the user wishes to find errors for.
      * @return The total number of errors for this device - index 0 = number of sensor readings, index 1 = number of errors
      */
     public int[] findErrorsByAddress(String address)
     {
         LinkedList<DataLine> dataLinesByAddress = findDeviceByAddress(address);
-
         int[] deviceDataArray = new int[2];
 
         // Iterate over all data lines and find errors, add to array
         listIt = dataLinesByAddress.listIterator();
 
         while (listIt.hasNext()) {
-
             nextData = listIt.next();
-
             // Find an error
             if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00"))) 
                 deviceDataArray[0]++;
-
             deviceDataArray[1]++;
         }
-
         return deviceDataArray;
     }
 
@@ -177,7 +172,7 @@ public class SensorData
         errorsArray[0] = 0;
         errorsArray[1] = 0;
 
-        // Clear linked list
+        // Clear current errors linked list
         while (!uniqueErrorsList.isEmpty())
             uniqueErrorsList.removeFirst();
 
@@ -186,7 +181,6 @@ public class SensorData
 
         while (listIt.hasNext()) {
             nextData = listIt.next();
-
             // Find an error
             if (!(nextData.getStatus().equals("0") || nextData.getStatus().equals("00"))) {
                 errorsArray[0]++; 
@@ -198,11 +192,9 @@ public class SensorData
         // Sort the array of errors (used to help find unique errors)
         if (uniqueErrorsList.size() > 0) {
             Collections.sort(uniqueErrorsList, (String data_1, String data_2) -> data_2.compareTo(data_1));
-
             ListIterator<String> curStatusIt = uniqueErrorsList.listIterator();
 
-            String currentStatus = curStatusIt.next();
-            String nextStatus;
+            String currentStatus = curStatusIt.next(), nextStatus;
 
             while (curStatusIt.hasNext()) {
                 nextStatus = curStatusIt.next();
@@ -212,15 +204,12 @@ public class SensorData
                         errorsArray[1] += 2;
                     else
                         errorsArray[1]++;
-
                     currentStatus = nextStatus;
                 }
             }
-
             // Increase by 1 to ensure if only 1 error is present, then 1 unique error will be present
             errorsArray[1]++;
         }
-        
         return errorsArray;
     }
 
@@ -240,28 +229,7 @@ public class SensorData
      */
     public int findNoOfUniqueDevices()
     {
-        int noOfDevices = 0;
-        boolean firstTime = true;
-        String currentDeviceAddress;
-        String nextAddress;
-        Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
-
-        listIt = dataList.listIterator();
-
-        currentDeviceAddress = listIt.next().getAddress();
-
-        while (listIt.hasNext()) {
-
-            nextAddress = listIt.next().getAddress();
-
-            if (!(nextAddress.equals(currentDeviceAddress)) || firstTime) {
-                noOfDevices++;
-                currentDeviceAddress = nextAddress;
-                firstTime = false;
-            }
-        }
-
-        return noOfDevices;
+        return findUniqueDevices().size();
     }
 
     /**
@@ -273,17 +241,16 @@ public class SensorData
         LinkedList<DataLine> uniqueDevices = new LinkedList<DataLine>();
         LinkedList<DataLine> allDevices = getAllData();
 
-        DataLine nextDeviceToAdd;
-        DataLine currentDeviceToAdd;
+        DataLine nextDeviceToAdd, currentDeviceToAdd;
 
+        // Sort all the devices by address before iterating
         Collections.sort(allDevices, (DataLine data_1, DataLine data_2) -> data_2.getAddress().compareTo(data_1.getAddress()));
 
         listIt = allDevices.listIterator();
-
         currentDeviceToAdd = listIt.next();
-
         uniqueDevices.add(currentDeviceToAdd);
 
+        // Iterate over all devices
         while (listIt.hasNext()) {
             nextDeviceToAdd = listIt.next();
             if (!(nextDeviceToAdd.getAddress().equals(currentDeviceToAdd.getAddress()))) {
@@ -292,8 +259,8 @@ public class SensorData
             }
         }
 
+        // Finally sort by time obtained
         Collections.sort(allDevices, (DataLine data_1, DataLine data_2) -> data_1.getTime() - data_2.getTime());
-
         return uniqueDevices;
     }
 
@@ -309,8 +276,10 @@ public class SensorData
 
     /**
      * Method to sort the sensor data by various user input parameters.
+     *
      * @param user_selection The users selected sort option from the combobox.
      * @param list The linked list to sort.
+     * @param sorts The string array of sorting possibilities.
      */
     public void sortData(String user_selection, LinkedList<DataLine> list, String[] sorts) 
     {
@@ -347,6 +316,9 @@ public class SensorData
 
     /**
      * Method to get string details of the maximum, minimum and average values for each graph plot.
+     * @param sensLow The lower integer index to access sensor data.
+     * @param sensHigh The higher integer index to access sensor data.
+     * @param address The string address the user wishes to find all records for.
      * @return The string details for each graph plot.
      */
     public String getGraphDetails(int sensLow, int sensHigh, String address)
@@ -354,6 +326,7 @@ public class SensorData
         int runningTotal = 0;
         int noOfDevices = getAllData().size();
 
+        // Obtain all devices by the users chosen device address
         LinkedList<DataLine> graphDevices = findDeviceByAddress(address);
 
         int maxVal = getMaxVal(sensLow, sensHigh, graphDevices);
@@ -361,12 +334,14 @@ public class SensorData
         int avgVal = getAvgVal(sensLow, sensHigh, graphDevices);
 
         String graphDetails = "Max: " + Integer.toString(maxVal) + ", Min: " + Integer.toString(minVal) + ", Average: " + Integer.toString(avgVal);
-
         return graphDetails;
     }
 
     /**
      * Method to return the minimum sensor value found from the CSV file.
+     * @param low The lower integer index to access sensor data.
+     * @param high The higher integer index to access sensor data.
+     * @param dataList The list of required devices to find a min value from.
      * @return The minimum sensor value.
      */
     public int getMinVal(int low, int high, LinkedList<DataLine> dataList)
@@ -374,6 +349,7 @@ public class SensorData
         int minVal = 0;
         boolean failed = false;
 
+        // Sort all data by sensor data given the specific index
         Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_1.getSensorData().toString().substring(low,high).compareTo(data_2.getSensorData().toString().substring(low,high)));
         try {
             minVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
@@ -388,6 +364,9 @@ public class SensorData
 
     /**
      * Method to return the maximum sensor value found from the CSV file.
+     * @param low The lower integer index to access sensor data.
+     * @param high The higher integer index to access sensor data.
+     * @param dataList The list of required devices to find a max value from.
      * @return The maximum sensor value.
      */
     public int getMaxVal(int low, int high, LinkedList<DataLine> dataList)
@@ -395,6 +374,7 @@ public class SensorData
         int maxVal = 0;
         boolean failed = false;
 
+        // Sort all data by sensor data given the specific index
         Collections.sort(dataList, (DataLine data_1, DataLine data_2) -> data_2.getSensorData().toString().substring(low,high).compareTo(data_1.getSensorData().toString().substring(low,high)));
         try {
             maxVal = Integer.parseInt(dataList.getFirst().getSensorData().substring(low,high), 16);
@@ -404,12 +384,14 @@ public class SensorData
         }
         if (failed)
             maxVal = -1;
-
         return maxVal;
     }
 
     /**
      * Method to return the average sensor value found from the CSV file.
+     * @param low The lower integer index to access sensor data.
+     * @param high The higher integer index to access sensor data.
+     * @param dataList The list of required devices to find a average value from.
      * @return The average sensor value.
      */
     public int getAvgVal(int low, int high, LinkedList<DataLine> dataList)
@@ -419,6 +401,7 @@ public class SensorData
         // Iterate over all data lines and add sensor value to running total
         listIt = dataList.listIterator();
 
+        // Iterate over all sensor data for specific device
         while (listIt.hasNext()) {
             nextData = listIt.next();
             try {
@@ -427,29 +410,29 @@ public class SensorData
             catch (NumberFormatException | StringIndexOutOfBoundsException e) {
                 break;
             }
-
         }
 
         int avgVal = runningTotal/dataList.size();
-
         return avgVal;
     }
 
     /**
      * Method to return the deviation from the mean value for the sensor under consideration.
+     * @param mean The mean value to find the deviation from.
+     * @param sensorData The current sensor value read from a sensor to find the deviation from the mean.
      * @return The percentage deviation from the mean for the particular sensor.
      */
-    public int getDeviationFromMean (int mean, int sensorData)
+    public int getDeviationFromMean(int mean, int sensorData)
     {
         if (mean == 0)
             return 0;
-        int deviationPercentage = (int) Math.abs(( (double) (( (double) sensorData-mean)/mean) * 100.0));
+        int deviationPercentage = (int) Math.abs(((double)(((double)sensorData-mean)/mean) * 100.0));
         return deviationPercentage;
     }
 
     /**
      * Method to return a linked list of all the data lines present in the CSV input file for use in output table.
-     * @return The linked list of data lines.
+     * @return The linked list of all data lines from the CSV file.
      */
     public LinkedList<DataLine> getAllData() 
     {

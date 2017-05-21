@@ -4,25 +4,32 @@ import javax.swing.*;
 import java.util.*;
 
 /**
- * A class to model a simple line graph component.
+ * A class to model a simple graph component.
+ * Depending on the user selection in the application, a line graph, scatter graph and bar graph can be drawn onto a separate pop up panel.
+ * Dashed guidelines can be used to help with determining precise sensor values.
  * The graph displays all provided sensor data points in a compact component and can be viewed inside a panel/frame.
  *
  * @author Harry Baines
  */
 public class GraphComponent extends JPanel
 {
-    // Linked list to store sensor data and iterator to iterate over the linked list
-    private LinkedList<Integer> sensorPoints = new LinkedList<Integer>();
-    private LinkedList<Integer> flaggedDataPoints = new LinkedList<Integer>();
+    // Linked lists to store sensor data, flagged data points and date points, with iterators to iterate over the linked lists
+    private LinkedList<Integer> sensorPoints;
+    private LinkedList<Integer> flaggedDataPoints;
+    private LinkedList<String> datePoints;
     private ListIterator<Integer> listIt;
     private ListIterator<Integer> listItFlagged;
-    private LinkedList<String> datePoints = new LinkedList<String>();
     private ListIterator<String> listItDates;
-    private String title_details;
-    private String graphDetails;
 
     // Graph variables
-    private final int pad = 40;
+    private Graphics2D g2;
+    private Graphics2D g2d;
+    private Stroke dashed;
+    private final int pad;
+    private final int[] barWidths;
+    private String title_details;
+    private String graphDetails;
+    private AffineTransform affineTransform;
     private double xInc;
     private double scale;
     private int barWidth;
@@ -37,20 +44,20 @@ public class GraphComponent extends JPanel
     private double initXPos;
     private double initYPos;
     private double dateInc;
-    private boolean dashed;
-    private boolean scatter;
-    private boolean bar;
-    private final int[] barWidths = {28, 14, 5};
+    private boolean dashedBool;
+    private boolean scatterBool;
+    private boolean barBool;
+    private int distToXAxis;
 
     /**
-     * Method to paint a scatter graph component on the UI.
+     * Method to paint the users chosen graph type selection onto the UI.
      * @param g The graphics component instance to paint onto the UI.
      */
     protected void paintComponent(Graphics g) 
     {
         // Override method
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D)g;
+        g2 = (Graphics2D)g;
 
         // Width and height of component
         width = getWidth();
@@ -91,13 +98,11 @@ public class GraphComponent extends JPanel
 
         // Y axis labels and dashed lines (if applicable)
         g2.setFont(new Font("Verdana", Font.PLAIN, 18)); 
-        for (int i = 0; i < 7; i++)
-        {
+        for (int i = 0; i < 7; i++) {
             g2.drawString(Integer.toString(i*50), pad, (height - pad - (int)(i*scale*50)) + 5);
 
             // Draw dashed lines on graph if selected
-            if (dashed && !scatter)
-            {
+            if (dashedBool && !scatterBool) {
             	drawDashedLine(g2, 2*pad, (height - pad - (int)(i*scale*50)), width - 2*pad, height - pad - (int)(i*scale*50));
                 drawDashedLine(g2, (int) (2*pad) + (i*dateInc*2), getHeight() - pad, (int) (2*pad) + (i*dateInc*2), pad);
             }
@@ -105,22 +110,21 @@ public class GraphComponent extends JPanel
 
 		// Y axis value label
 		g2.setFont(new Font("Verdana", Font.PLAIN, 16)); 
-		AffineTransform affineTransform = new AffineTransform();
+		affineTransform = new AffineTransform();
 		affineTransform.rotate(Math.toRadians(-90), 0, 0);
 		g2.setFont(g2.getFont().deriveFont(affineTransform));
 		g2.drawString("Value", pad/2 + 5, height/2 + 20);
 
-		initXPos = 0;
-		initYPos = 0;
-
 		// Data points - iterate over all data points and mark data points with red ellipses
         inc = 0;
+        initXPos = 0;
+        initYPos = 0;
         listIt = sensorPoints.listIterator();
         listItFlagged = flaggedDataPoints.listIterator();
-
 		g2.setStroke(new BasicStroke(1));
-        while (listIt.hasNext())
-        {
+
+        // Scan linked list of sensor points
+        while (listIt.hasNext()) {
             sensorPoint = listIt.next();
             flaggedPoint = listItFlagged.next();
         	
@@ -130,21 +134,19 @@ public class GraphComponent extends JPanel
             else
             	g2.setPaint(Color.BLUE);
 
-            xPos = pad*2 + inc*xInc;
-            yPos = height - pad - scale*sensorPoint;
+            xPos = (pad*2) + (inc*xInc);
+            yPos = (height - pad - (scale*sensorPoint));
 
-            if (scatter)
-            {
+            if (scatterBool) {
             	g2.setFont(new Font("Verdana", Font.PLAIN, 7));
             	g2.drawString("x", (int) (xPos-2), (int) (yPos+2));
 
-            	if (dashed && inc != 0)
+            	if (dashedBool && inc != 0)
         			g2.draw(new Line2D.Double(initXPos, initYPos, xPos, yPos));
             }
-            else if (bar)
-            {
+            else if (barBool) {
             	if (inc != 0 && inc != sensorPoints.size()) {
-	            	int distToXAxis = (int) (height - pad  - yPos);
+	            	distToXAxis = (int) (height - pad  - yPos);
 	            	if (flaggedPoint == 0)
 	            		g2.setPaint(Color.RED);
 	            	else 
@@ -169,22 +171,30 @@ public class GraphComponent extends JPanel
         g2.setPaint(Color.BLACK);
         g2.setFont(new Font("default", Font.BOLD, 10));
         listItDates = datePoints.listIterator();
-        while (listItDates.hasNext())
-        {
+        while (listItDates.hasNext()) {
             datePoint = listItDates.next();
             g2.drawString(datePoint, (int) ((pad-20) + (inc*dateInc*2)), height - 20);
             inc++;
         }
     }
 
+    /**
+     * A simple method to draw dashed guidelines if the user selects the dashed line option when drawing the graph
+     *
+     * @param g The graphics instance to paint onto the UI.
+     * @param x1 The first x position of where to begin drawing the line.
+     * @param y1 The first y position of where to begin drawing the line.
+     * @param x2 The second x position of where to finish drawing the line.
+     * @param y2 The second y position of where to finish drawing the line.
+     */
     public void drawDashedLine(Graphics g, double x1, double y1, double x2, double y2)
     {
-        //creates a copy of the Graphics instance
-        Graphics2D g2d = (Graphics2D) g.create();
+        // Graphics2D instance
+        g2d = (Graphics2D) g.create();
         g2d.setPaint(Color.BLACK);
 
-        //set the stroke of the copy, not the original 
-        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+        // Draw a basic dashed line
+        dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
         g2d.setStroke(dashed);
         g2d.draw(new Line2D.Double(x1, y1, x2, y2));
 
@@ -193,21 +203,29 @@ public class GraphComponent extends JPanel
 	}
 
     /**
-     * Constructor to initialise sensor data with relevant data for that particular sensor.
+     * Constructor to initialise sensor variables with relevant data for a selected device and initialise graph constants.
      *
      * @param sensorPoints The linked list of sensor data points to plot over time. 
      * @param datePoints The linked list of date strings to plot on the X axis.
-     * @param device_address The string address of the device for which data is being plotted.
+     * @param flaggedDataPoints The linked list of flagged points to indicate if an error was picked up for this sensor value.
+     * @param title_details The complete string to display at the top of each graph plot (title, sensor number etc.)
+     * @param graphDetails The details to display for the graph underneath the title string.
+     * @param dashedBool A boolean value to determine if the plot displays helper guidelines on the plot.
+     * @param scatterBool A boolean value to determine if the graph should be displayed as a scatter graph.
+     * @param barBool A boolean value to determine if the graph should be displayed as a bar graph.
      */
-    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, String graphDetails, boolean dashed, boolean scatter, boolean bar)
+    public GraphComponent(LinkedList<Integer> sensorPoints, LinkedList<String> datePoints, LinkedList<Integer> flaggedDataPoints, String title_details, String graphDetails, boolean dashedBool, boolean scatterBool, boolean barBool)
     {
         this.sensorPoints = sensorPoints;
         this.datePoints = datePoints;
         this.flaggedDataPoints = flaggedDataPoints;
         this.title_details = title_details;
         this.graphDetails = graphDetails;
-        this.dashed = dashed;
-        this.scatter = scatter;
-        this.bar = bar;
+        this.dashedBool = dashedBool;
+        this.scatterBool = scatterBool;
+        this.barBool = barBool;
+        
+        this.barWidths = new int[] {28, 14, 5};
+        this.pad = 40;
     }
 }
