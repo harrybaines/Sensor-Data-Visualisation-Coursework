@@ -16,8 +16,8 @@ public class Driver
 		// Schedule a job for the event-dispatching thread: creating + showing the GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                MainScreen m = new MainScreen();
-                m.displayScreen();
+                VisualiseData d = new VisualiseData();
+                d.displayScreen();
             }
         });
 	}

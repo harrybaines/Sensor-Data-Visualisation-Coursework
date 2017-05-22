@@ -18,7 +18,7 @@ import javax.swing.table.*;
  *
  * @author Harry Baines
  */
-public class MainScreen extends JPanel implements ActionListener, ListSelectionListener 
+public class VisualiseData extends JPanel implements ActionListener, ListSelectionListener 
 {
     // SensorData instance to obtain data lines from a CSV file
     private SensorData data;
@@ -211,7 +211,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     /**
      * Constructor to initialise panels and place components on the UI.
      */
-    public MainScreen() 
+    public VisualiseData() 
     {
         // INSTANCE VARIABLES INITIALISATION
         data = new SensorData();
@@ -739,7 +739,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
             @Override
             public void run() {
                 window = new JFrame();
-                window.add(new MainScreen());
+                window.add(new VisualiseData());
                 window.setTitle("Sensor Data Visualisation");
                 window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 window.setLocation(100,100);
@@ -1381,7 +1381,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         selectDest.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
         selectDest.showSaveDialog(null);
 
-        img = new BufferedImage(panel.getWidth(), panel.getHeight()-40, BufferedImage.TYPE_INT_RGB);
+        img = new BufferedImage(panel.getWidth(), panel.getHeight()-35, BufferedImage.TYPE_INT_RGB);
         panel.paint(img.getGraphics());
         try {
             ImageIO.write(img, "png", new File(selectDest.getSelectedFile().getPath() + ".png"));
