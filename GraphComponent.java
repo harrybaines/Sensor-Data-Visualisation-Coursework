@@ -109,7 +109,7 @@ public class GraphComponent extends JPanel
         }
 
 		// Y axis value label
-		g2.setFont(new Font("Verdana", Font.PLAIN, 16)); 
+		g2.setFont(new Font("Verdana", Font.BOLD, 16)); 
 		affineTransform = new AffineTransform();
 		affineTransform.rotate(Math.toRadians(-90), 0, 0);
 		g2.setFont(g2.getFont().deriveFont(affineTransform));
@@ -167,6 +167,10 @@ public class GraphComponent extends JPanel
         }
 
         // X axis labels - iterate over all date data points and mark on X axis
+        g2.setFont(new Font("Verdana", Font.BOLD, 16)); 
+        g2.setPaint(Color.BLACK);
+        g2.drawString("Time",(width/2) - (pad/2), height-(pad/4));
+
         inc = 0;
         g2.setPaint(Color.BLACK);
         g2.setFont(new Font("default", Font.BOLD, 10));

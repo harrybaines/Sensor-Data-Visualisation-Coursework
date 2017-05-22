@@ -1183,13 +1183,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 // Add row to table
                 tableModel.addRow(dataToAdd);
             }
-
             // Results found data
-            if (devicesFound.size() == 0)
-                resultsFoundLbl.setText("No Results Found");
-            else
-                resultsFoundLbl.setText("Results Found: " + devicesFound.size());
+            resultsFoundLbl.setText("Results Found: " + devicesFound.size());
         }
+        else
+            resultsFoundLbl.setText("No Results Found");
     }
 
     /**
