@@ -223,11 +223,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         infoNames = new String[] {"Sensor Number", "Data (Decimal)", "Data (Hex)"};
         sorts = new String[] {"Time since last seen (DESC)", "Time since last seen (ASC)", "Status Codes", "Messages missed by receiver"};
         visuals = new String[] {"Sensor-Value-Over-Time Line Graph", "Sensor-Value-Over-Time Line Graph (DASHED)", "Scatter Graph", "Scatter Graph (JOINED)", "Bar Graph", "Bar Graph (DASHED)"};
-        plots = new String[] {"Plot All Sensor Values", "High-Frequency Plot", "Mid-Frequency Plot", "Low Frequency Plot"};
+        plots = new String[] {"Plot All Sensor Values", "Mid-Frequency Plot", "Low Frequency Plot"};
         eventNames = new String[] {"Event Summary For This Device"};
 
         // Statistics and graph variables and values
-        frequencyPlotValues = new int[][] {{0,0}, {250,50}, {100,20}, {50,10}};
+        frequencyPlotValues = new int[][] {{0,0}, {100,20}, {50,10}};
         errorStatValues = new int[] {0,0,0};
         sensorMinStatValues = new int[10];
         sensorMaxStatValues = new int[10];
@@ -908,8 +908,7 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
                 
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: too much sensor data.", "Error", JOptionPane.ERROR_MESSAGE);   
             
-            else if (devicesFound.size() < 50 && ((plotOpts.getSelectedItem().equals(plots[1])) || (plotOpts.getSelectedItem().equals(plots[2]))
-                || (plotOpts.getSelectedItem().equals(plots[3]))))
+            else if (devicesFound.size() < 50 && ((plotOpts.getSelectedItem().equals(plots[1])) || (plotOpts.getSelectedItem().equals(plots[2]))))
                 JOptionPane.showMessageDialog(new JFrame(), "Error - graph could not be plotted: graph detail is too small for the number of devices found.", "Error", JOptionPane.ERROR_MESSAGE);   
 
             else {
@@ -1152,7 +1151,11 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
         tableModel.fireTableDataChanged();
         
         // If user has searched for data, display that, otherwise show all
-        devicesFound = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
+        // Error checking
+    	if (data.getAllData().size() == 0)
+    		return;
+    	else
+       		devicesFound = data.findDeviceByAddress(sensorOpts.getSelectedItem().toString());
 
         if (devicesFound.size() != 0) {
             // Sort the data in the table from user input
@@ -1226,11 +1229,14 @@ public class MainScreen extends JPanel implements ActionListener, ListSelectionL
     private void displayStatisticsForSensor(String device)
     {
         // Error checking
-        for (int i = 1; i <= 10; i++)
-            if (data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device)) == -1 || data.getMinVal(i-1, i+1, data.findDeviceByAddress(device)) == -1) {
-                JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
-                break;
-            }
+    	if (data.getAllData().size() == 0)
+    		return;
+    	else
+	        for (int i = 1; i <= 10; i++)
+	            if (data.getMaxVal(i-1, i+1, data.findDeviceByAddress(device)) == -1 || data.getMinVal(i-1, i+1, data.findDeviceByAddress(device)) == -1) {
+	                JOptionPane.showMessageDialog(new JFrame(), "Error - some maximum and minimum values couldn't be calculated as some data has been found in the wrong format.", "Error", JOptionPane.ERROR_MESSAGE);   
+	                break;
+	            }
 
         // Find statistics for the given device
         for (int i = 1; i < 20; i+=2) {
