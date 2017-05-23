@@ -209,7 +209,8 @@ public class VisualiseData extends JPanel implements ActionListener, ListSelecti
     private String nextEvent;
 
     /**
-     * Constructor to initialise panels and place components on the UI.
+     * Constructor to initialise instance variables and UI components.
+     * Panels and individual components are placed on the relevant tab in the application.
      */
     public VisualiseData() 
     {
@@ -886,6 +887,7 @@ public class VisualiseData extends JPanel implements ActionListener, ListSelecti
 
     /**
      * A method to display a UI with a tabbed pane with all sensors found for a particular device.
+     * Each separate tab corresponds to a particular sensor for the device chosen.
      */
     private void displayGraphs() 
     {
@@ -1067,6 +1069,7 @@ public class VisualiseData extends JPanel implements ActionListener, ListSelecti
 
     /**
      * Method to display all the events found for a chosen sensor in a simple table on the events panel.
+     * The list of events found can then be saved to a text file output.
      */
     private void displaySensorEvents()
     {
